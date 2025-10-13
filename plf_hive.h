@@ -730,7 +730,7 @@ public:
 	}
 
 
-	#if 0
+
 
 private:
 
@@ -756,7 +756,7 @@ private:
 		return new_group;
 	}
 
-	#endif
+
 
 	void deallocate_group(const group_pointer_type the_group) noexcept
 	{
@@ -826,7 +826,7 @@ private:
 		}
 	}
 
-	#if 0
+
 
 	void initialize(const skipfield_type first_group_size)
 	{
@@ -836,7 +836,7 @@ private:
 		total_capacity = first_group_size;
 	}
 
-
+	#if 0
 
 	void edit_free_list(const skipfield_pointer_type location, const skipfield_type value) noexcept
 	{
@@ -957,7 +957,7 @@ private:
 		return reused_group;
 	}
 
-
+	#endif
 
 	template<typename... arguments>
 	constexpr void construct_element(const aligned_pointer_type location, arguments &&... parameters)
@@ -965,7 +965,7 @@ private:
 		std::allocator_traits<allocator_type>::construct(*this, pointer_cast<pointer>(location), std::forward<arguments>(parameters) ...);
 	}
 
-	#endif
+
 
 public:
 
@@ -976,9 +976,9 @@ public:
 		{
 			if (erasure_groups_head == nullptr) // ie. there are no erased elements
 			{
-				#if 0
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
+					#if 0
 					construct_element(end_iterator.element_pointer, element);
 
 					const iterator return_iterator = end_iterator;
@@ -987,8 +987,13 @@ public:
 					++(end_iterator.group_pointer->size);
 					++total_size;
 					return return_iterator;
+					#endif
+
+					assert(!"000000000000");
+					return end_iterator;
 				}
 
+				#if 0
 				group_pointer_type next_group;
 
 				if (unused_groups_head == nullptr)
@@ -1055,7 +1060,6 @@ public:
 		}
 		else // ie. newly-constructed hive, no insertions yet and no groups
 		{
-			#if 0
 			initialize(min_block_capacity);
 
 			#ifdef PLF_EXCEPTIONS_SUPPORT
@@ -1080,10 +1084,6 @@ public:
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
 			return begin_iterator;
-			#endif
-
-			assert(!"333333333333333");
-			return end_iterator;
 		}
 	}
 
