@@ -52,6 +52,8 @@
 #include <compare> // std::strong_ordering
 #include <ranges>
 
+#include "../plf_bitsets/plf_bitsetc.h"
+
 
 
 namespace plf
@@ -227,19 +229,20 @@ private:
 		group_pointer_type			next_group;			// Next group in the linked list of all groups. nullptr if no following group. 2nd in struct because it is so frequently used during iteration.
 		const aligned_pointer_type	elements;			// Element storage.
 		group_pointer_type			previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
-		skipfield_type 				free_list_head;		// The index of the last erased element in the group. The last erased element will, in turn, contain the number of the index of the next erased element, and so on. If this is == maximum skipfield_type value then free_list is empty ie. no erasures have occurred in the group (or if they have, the erased locations have subsequently been reused via insert/emplace/assign).
+		// skipfield_type 				free_list_head;		// The index of the last erased element in the group. The last erased element will, in turn, contain the number of the index of the next erased element, and so on. If this is == maximum skipfield_type value then free_list is empty ie. no erasures have occurred in the group (or if they have, the erased locations have subsequently been reused via insert/emplace/assign).
+		plf::bitsetc<>				bitset;
 		const skipfield_type 		capacity;			// The element capacity of this particular group - can also be calculated from reinterpret_cast<aligned_pointer_type>(group->skipfield) - group->elements, however this space is effectively free due to struct padding and the sizeof(skipfield_type), and calculating it once is faster in benchmarking.
 		skipfield_type 				size; 				// The total number of active elements in group - changes with insert and erase commands - used to check for empty group in erase function, as an indication to remove the group. Also used in combination with capacity to check if group is full, which is used in the next/previous/advance/distance overloads, and range-erase.
 		group_pointer_type			erasures_list_next_group, erasures_list_previous_group; // The next and previous groups in the list of groups with erasures ie. with active erased-element free lists. nullptr if no next or previous group.
 		size_type					group_number;		// Used for comparison (> < >= <= <=>) iterator operators (used by distance function and user).
 
 
-
 		group(aligned_struct_allocator_type &aligned_struct_allocator, const skipfield_type elements_per_group, const group_pointer_type previous):
 			next_group(nullptr),
 			elements(pointer_cast<aligned_pointer_type>(std::allocator_traits<aligned_struct_allocator_type>::allocate(aligned_struct_allocator, get_aligned_block_capacity(elements_per_group), (previous == nullptr) ? 0 : previous->elements))),
 			previous_group(previous),
-			free_list_head(std::numeric_limits<skipfield_type>::max()),
+			// free_list_head(std::numeric_limits<skipfield_type>::max()),
+			bitset(elements_per_group),
 			capacity(elements_per_group),
 			size(1),
 			erasures_list_next_group(nullptr),
@@ -255,7 +258,8 @@ private:
 		void reset(const skipfield_type increment, const group_pointer_type next, const group_pointer_type previous, const size_type group_num) noexcept
 		{
 			next_group = next;
-			free_list_head = std::numeric_limits<skipfield_type>::max();
+			// free_list_head = std::numeric_limits<skipfield_type>::max();
+			bitset.reset();
 			previous_group = previous;
 			size = increment;
 			erasures_list_next_group = nullptr;
@@ -270,16 +274,16 @@ private:
 
 	// Hive member variables:
 
-	iterator 				end_iterator, begin_iterator;
+	iterator 			end_iterator, begin_iterator;
 	group_pointer_type	erasure_groups_head,	// Head of doubly-linked list of groups which have erased-element memory locations available for re-use
 								unused_groups_head;	// Head of singly-linked list of reserved groups retained by erase()/clear() or created by reserve()
-	size_type				total_size, total_capacity;
+	size_type			total_size, total_capacity;
 	skipfield_type 		min_block_capacity, max_block_capacity;
 
-	group_allocator_type group_allocator;
-	aligned_struct_allocator_type aligned_struct_allocator;
-	skipfield_allocator_type skipfield_allocator;
-	tuple_allocator_type tuple_allocator;
+	group_allocator_type 			group_allocator;
+	aligned_struct_allocator_type	aligned_struct_allocator;
+	skipfield_allocator_type 		skipfield_allocator;
+	tuple_allocator_type 			tuple_allocator;
 
 
 
@@ -961,7 +965,7 @@ private:
 		std::allocator_traits<allocator_type>::construct(*this, pointer_cast<pointer>(location), std::forward<arguments>(parameters) ...);
 	}
 
-
+	#endif
 
 public:
 
@@ -972,6 +976,7 @@ public:
 		{
 			if (erasure_groups_head == nullptr) // ie. there are no erased elements
 			{
+				#if 0
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
 					construct_element(end_iterator.element_pointer, element);
@@ -1026,9 +1031,14 @@ public:
 				++total_size;
 
 				return iterator(next_group, next_group->elements, next_group->skipfield);
+				#endif
+
+				assert(!"11111111111");
+				return end_iterator;
 			}
 			else // there are erased elements, reuse those memory locations
 			{
+				#if 0
 				iterator new_location(erasure_groups_head, erasure_groups_head->elements + erasure_groups_head->free_list_head, erasure_groups_head->skipfield + erasure_groups_head->free_list_head);
 
 				// We always reuse the element at the start of the skipblock, this is also where the free-list information for that skipblock is stored. Get the previous free-list node's index from this memory space, before we write to our element to it. 'Next' index is always the free_list_head (as represented by the maximum value of the skipfield type) here so we don't need to get it:
@@ -1037,10 +1047,15 @@ public:
 				update_skipblock(new_location, prev_free_list_index);
 
 				return new_location;
+				#endif
+
+				assert(!"22222222222");
+				return end_iterator;
 			}
 		}
 		else // ie. newly-constructed hive, no insertions yet and no groups
 		{
+			#if 0
 			initialize(min_block_capacity);
 
 			#ifdef PLF_EXCEPTIONS_SUPPORT
@@ -1065,10 +1080,14 @@ public:
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
 			return begin_iterator;
+			#endif
+
+			assert(!"333333333333333");
+			return end_iterator;
 		}
 	}
 
-
+	#if 0
 
 	iterator insert([[maybe_unused]] const_iterator hint, const element_type &element) // Note: hint is ignored, purely to serve other standard library functions like insert_iterator
 	{
