@@ -978,7 +978,6 @@ public:
 			{
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
-					#if 0
 					construct_element(end_iterator.element_pointer, element);
 
 					const iterator return_iterator = end_iterator;
@@ -987,10 +986,6 @@ public:
 					++(end_iterator.group_pointer->size);
 					++total_size;
 					return return_iterator;
-					#endif
-
-					assert(!"000000000000");
-					return end_iterator;
 				}
 
 				#if 0

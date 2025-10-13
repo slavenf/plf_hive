@@ -9,6 +9,9 @@ int main()
     plf::hive<int> h;
 
     auto it_10 = h.insert(10);
+    auto it_20 = h.insert(20);
+    auto it_30 = h.insert(30);
+    auto it_40 = h.insert(40);
 
     std::cout << "size:     " << h.size() << std::endl;
     std::cout << "capacity: " << h.capacity() << std::endl;
