@@ -392,7 +392,7 @@ public:
 		hive(allocator_type())
 	{}
 
-
+	#if 0
 
 	constexpr hive(const hive_limits block_limits, const allocator_type &alloc):
 		allocator_type(alloc),
@@ -632,7 +632,7 @@ public:
 		hive(plf::ranges::from_range, std::move(rg), block_capacity_default_limits(), alloc)
 	{}
 
-
+	#endif
 
 	// Everything else:
 
@@ -726,7 +726,7 @@ public:
 	}
 
 
-
+	#if 0
 
 private:
 
@@ -752,7 +752,7 @@ private:
 		return new_group;
 	}
 
-
+	#endif
 
 	void deallocate_group(const group_pointer_type the_group) noexcept
 	{
@@ -760,7 +760,7 @@ private:
 		std::allocator_traits<group_allocator_type>::deallocate(group_allocator, the_group, 1);
 	}
 
-
+	#if 0
 
 	constexpr void destroy_element(const aligned_pointer_type element) noexcept
 	{
@@ -787,7 +787,7 @@ private:
 		deallocate_group(begin_iterator.group_pointer);
 	}
 
-
+	#endif
 
 	void destroy_all_data() noexcept
 	{
@@ -822,7 +822,7 @@ private:
 		}
 	}
 
-
+	#if 0
 
 	void initialize(const skipfield_type first_group_size)
 	{
@@ -2658,7 +2658,7 @@ public:
 		return total_size == 0;
 	}
 
-
+	#endif
 
 	size_type size() const noexcept
 	{
@@ -2679,7 +2679,7 @@ public:
 		return total_capacity;
 	}
 
-
+	#if 0
 
 private:
 
@@ -2795,14 +2795,14 @@ public:
 		return hive_limits(static_cast<size_t>(min_block_capacity), static_cast<size_t>(max_block_capacity));
 	}
 
-
+	#endif
 
 	static constexpr hive_limits block_capacity_hard_limits() noexcept
 	{
 		return hive_limits(3, std::min(static_cast<size_t>(std::numeric_limits<skipfield_type>::max()), max_size_static()));
 	}
 
-
+	#if 0
 
 	void clear() noexcept
 	{
@@ -3708,7 +3708,7 @@ public:
 		}
 	}
 
-
+	#endif
 
 	// Iterators:
 	template <bool is_const>
