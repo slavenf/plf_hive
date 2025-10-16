@@ -917,32 +917,37 @@ private:
 
 	void update_skipblock(const iterator &new_location) noexcept
 	{
-		const skipfield_type new_value = static_cast<skipfield_type>(*(new_location.skipfield_pointer) - 1);
+		// Calculate new skip value
+		const skipfield_type new_skip_value = static_cast<skipfield_type>(*(new_location.skipfield_pointer) - 1);
 
-		if (new_value != 0) // ie. skipfield was not 1, ie. a single-node skipblock, with no additional nodes to update
+		// Increment number of elements in the current group
+		++(new_location.group_pointer->size);
+
+		// Increment total number of elements in the container
+		++total_size;
+
+		// Set skip value to zero, i.e. element is not skipped
+		*(new_location.skipfield_pointer) = 0;
+
+		// If group is full
+		if (new_location.group_pointer->size == new_location.group_pointer->capacity)
 		{
-			// set (new) start and (original) end of skipblock to new value:
-			*(new_location.skipfield_pointer + new_value) = *(new_location.skipfield_pointer + 1) = new_value;
+			// Remove this group from the list of groups with erasures
+			erasure_groups_head = erasure_groups_head->erasures_list_next_group; // No need to update previous group for new head, as this is never accessed if group == head
 		}
-		else // single-node skipblock, remove skipblock
+		else
 		{
-			// If all buckets are occupied
-			if (new_location.group_pointer->bitset.all())
+			if (new_skip_value != 0)
 			{
-				// Remove this group from the list of groups with erasures
-				erasure_groups_head = erasure_groups_head->erasures_list_next_group; // No need to update previous group for new head, as this is never accessed if group == head
+				// Set (new) start and (original) end of skipblock to new value:
+				*(new_location.skipfield_pointer + new_skip_value) = *(new_location.skipfield_pointer + 1) = new_skip_value;
 			}
 		}
-
-		*(new_location.skipfield_pointer) = 0;
-		++(new_location.group_pointer->size);
 
 		if (new_location.group_pointer == begin_iterator.group_pointer && new_location.element_pointer < begin_iterator.element_pointer)
 		{ /* ie. begin_iterator was moved forwards as the result of an erasure at some point, this erased element is before the current begin, hence, set current begin iterator to this element */
 			begin_iterator = new_location;
 		}
-
-		++total_size;
 	}
 
 	#if 0
