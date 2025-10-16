@@ -396,7 +396,7 @@ public:
 		hive(allocator_type())
 	{}
 
-	#if 0
+
 
 	constexpr hive(const hive_limits block_limits, const allocator_type &alloc):
 		allocator_type(alloc),
@@ -420,7 +420,7 @@ public:
 		hive(block_limits, allocator_type())
 	{}
 
-
+	#if 0
 
 	// Copy constructors:
 
@@ -921,7 +921,7 @@ private:
 		blank();
 	}
 
-
+	#endif
 
 	void update_subsequent_group_numbers(size_type current_group_number, group_pointer_type update_group) noexcept
 	{
@@ -946,7 +946,7 @@ private:
 		if (end_iterator.group_pointer->group_number == std::numeric_limits<size_type>::max()) [[unlikely]] reset_group_numbers();
 	}
 
-
+	#if 0
 
 	group_pointer_type reuse_unused_group() noexcept
 	{
@@ -972,6 +972,8 @@ public:
 
 	iterator insert(const element_type &element) // Note: defining insert & and insert && as calls to emplace results in larger codegen in release mode (under GCC at least), and prevents more accurate is_nothrow tests
 	{
+		std::cout << "inserting element: " << element << std::endl;
+
 		if (end_iterator.element_pointer != nullptr) // ie. empty hive, no blocks allocated yet
 		{
 			if (erasure_groups_head == nullptr) // ie. there are no erased elements
@@ -985,10 +987,23 @@ public:
 					++end_iterator.skipfield_pointer;
 					++(end_iterator.group_pointer->size);
 					++total_size;
+
+					// Index of the bucket where the element is inserted
+					const std::size_t pos = std::distance
+					(
+						return_iterator.group_pointer->elements,
+						return_iterator.element_pointer
+					);
+
+					// Mark the bucket as occupied
+					return_iterator.group_pointer->bitset.set(pos);
+
+					std::cout << " - pos: " << pos << std::endl;
+					std::cout << " - bitset: " << return_iterator.group_pointer->bitset << std::endl;
+
 					return return_iterator;
 				}
 
-				#if 0
 				group_pointer_type next_group;
 
 				if (unused_groups_head == nullptr)
@@ -1020,8 +1035,13 @@ public:
 				}
 				else
 				{
+					#if 0
 					construct_element(unused_groups_head->elements, element);
 					next_group = reuse_unused_group();
+					#endif
+
+					assert(!"22222222222");
+					return end_iterator;
 				}
 
 				end_iterator.group_pointer->next_group = next_group;
@@ -1030,11 +1050,16 @@ public:
 				end_iterator.skipfield_pointer = next_group->skipfield + 1;
 				++total_size;
 
-				return iterator(next_group, next_group->elements, next_group->skipfield);
-				#endif
+				// Index of the bucket where the element is inserted - it is always zero in this case
+				constexpr std::size_t pos = 0;
 
-				assert(!"11111111111");
-				return end_iterator;
+				// Mark the bucket as occupied
+				end_iterator.group_pointer->bitset.set(pos);
+
+				std::cout << " - pos: " << pos << std::endl;
+				std::cout << " - bitset: " << end_iterator.group_pointer->bitset << std::endl;
+
+				return iterator(next_group, next_group->elements, next_group->skipfield);
 			}
 			else // there are erased elements, reuse those memory locations
 			{
@@ -1049,13 +1074,14 @@ public:
 				return new_location;
 				#endif
 
-				assert(!"22222222222");
+				assert(!"3333333333");
 				return end_iterator;
 			}
 		}
 		else // ie. newly-constructed hive, no insertions yet and no groups
 		{
 			initialize(min_block_capacity);
+
 
 			#ifdef PLF_EXCEPTIONS_SUPPORT
 				if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
@@ -1078,6 +1104,16 @@ public:
 
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
+
+			// Index of the bucket where the element is inserted - it is always zero in this case
+			constexpr std::size_t pos = 0;
+
+			// Mark the bucket as occupied
+			end_iterator.group_pointer->bitset.set(pos);
+
+			std::cout << " - pos: " << pos << std::endl;
+			std::cout << " - bitset: " << end_iterator.group_pointer->bitset << std::endl;
+
 			return begin_iterator;
 		}
 	}
