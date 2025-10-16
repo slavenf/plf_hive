@@ -2009,6 +2009,16 @@ public:
 			destroy_element(it.element_pointer);
 		}
 
+		// Index of the bucket where the element was placed
+		const std::size_t pos = std::distance
+		(
+			it.group_pointer->elements,
+			it.element_pointer
+		);
+
+		// Mark the bucket as unoccupied
+		it.group_pointer->bitset.reset(pos);
+
 		--total_size;
 
 		if (--(it.group_pointer->size) != 0) // ie. non-empty group at this point in time, don't consolidate
@@ -2032,8 +2042,8 @@ public:
 				// This is solo skipped node
 				*it.skipfield_pointer = 1;
 
-				// If all buckets are occupied
-				if (it.group_pointer->bitset.all())
+				// If group was full before erasure
+				if (it.group_pointer->size + 1 == it.group_pointer->capacity)
 				{
 					// Add this group to the erasure list
 					it.group_pointer->erasures_list_next_group = erasure_groups_head;
@@ -2068,16 +2078,6 @@ public:
 
 				update_value = following_value;
 			}
-
-			// Index of the bucket where the element is placed
-			const std::size_t pos = std::distance
-			(
-				it.group_pointer->elements,
-				it.element_pointer
-			);
-
-			// Mark the bucket as unoccupied
-			it.group_pointer->bitset.reset(pos);
 
 			iterator return_iterator(it.group_pointer, it.element_pointer + update_value, it.skipfield_pointer + update_value);
 
