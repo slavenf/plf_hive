@@ -12,11 +12,10 @@ int main()
     auto it_20 = h.insert(20);
     auto it_30 = h.insert(30);
     auto it_40 = h.insert(40);
-    auto it_50 = h.insert(50);
-    auto it_60 = h.insert(60);
-    auto it_70 = h.insert(70);
-    auto it_80 = h.insert(80);
-    auto it_90 = h.insert(90);
+    // auto it_50 = h.insert(50);
+    // auto it_60 = h.insert(60);
+    // auto it_70 = h.insert(70);
+    // auto it_80 = h.insert(80);
 
     std::cout << "size:     " << h.size() << std::endl;
     std::cout << "capacity: " << h.capacity() << std::endl;
@@ -29,9 +28,10 @@ int main()
 
     std::cout << "-----------------------------------------------" << std::endl;
 
-    h.erase(it_60);
-    h.erase(it_80);
-    // h.erase(it_70);
+    h.erase(it_10);
+    h.erase(it_20);
+    h.erase(it_30);
+    h.erase(it_40);
 
     std::cout << "size:     " << h.size() << std::endl;
     std::cout << "capacity: " << h.capacity() << std::endl;
@@ -44,10 +44,11 @@ int main()
 
     std::cout << "-----------------------------------------------" << std::endl;
 
-    h.insert(61);
-    // h.insert(71);
-    h.insert(81);
-    h.insert(100);
+    h.insert(11);
+    h.insert(21);
+    h.insert(31);
+    h.insert(41);
+    h.insert(90);
 
     std::cout << "size:     " << h.size() << std::endl;
     std::cout << "capacity: " << h.capacity() << std::endl;

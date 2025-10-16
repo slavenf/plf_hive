@@ -1968,7 +1968,7 @@ private:
 		}
 	}
 
-
+	#endif
 
 	void reset_only_group_left(const group_pointer_type group_pointer) noexcept
 	{
@@ -1980,7 +1980,7 @@ private:
 		end_iterator.skipfield_pointer = begin_iterator.skipfield_pointer = group_pointer->skipfield;
 	}
 
-
+	#if 0
 
 	void add_group_to_unused_groups_list(group * const group_pointer) noexcept
 	{
@@ -2095,12 +2095,9 @@ public:
 
 		if (in_back_block & in_front_block) // ie. only group in hive
 		{
-			#if 0
 			// Reset skipfield and free list rather than clearing - leads to fewer allocations/deallocations:
 			reset_only_group_left(it.group_pointer);
 			return end_iterator;
-			#endif
-			assert(!"555555555"); return end_iterator;
 		}
 		else if ((!in_back_block) & in_front_block) // ie. Remove first group, change first group to next group
 		{
