@@ -30,6 +30,8 @@ int main()
     std::cout << "-----------------------------------------------" << std::endl;
 
     h.erase(it_60);
+    h.erase(it_80);
+    // h.erase(it_70);
 
     std::cout << "size:     " << h.size() << std::endl;
     std::cout << "capacity: " << h.capacity() << std::endl;
@@ -42,7 +44,9 @@ int main()
 
     std::cout << "-----------------------------------------------" << std::endl;
 
-    h.insert(1111);
+    h.insert(61);
+    // h.insert(71);
+    h.insert(81);
     h.insert(100);
 
     std::cout << "size:     " << h.size() << std::endl;

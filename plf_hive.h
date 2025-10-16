@@ -1034,7 +1034,7 @@ public:
 					++(end_iterator.group_pointer->size);
 					++total_size;
 
-					std::cout << " - pos: " << pos << std::endl;
+					std::cout << " - pos1: " << pos << std::endl;
 					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
 
 					return it;
@@ -1096,7 +1096,7 @@ public:
 					end_iterator.skipfield_pointer = next_group->skipfield + 1;
 					++total_size;
 
-					std::cout << " - pos: " << pos << std::endl;
+					std::cout << " - pos2: " << pos << std::endl;
 					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
 
 					return it;
@@ -1107,7 +1107,7 @@ public:
 				// Index of the first unoccupied bucket
 				const std::size_t pos = erasure_groups_head->bitset.first_zero();
 
-				std::cout << " - pos: " << pos << std::endl;
+				std::cout << " - pos3: " << pos << std::endl;
 				std::cout << " - bitset before: " << erasure_groups_head->bitset << std::endl;
 
 				// Iterator to the unoccupied bucket
@@ -1166,7 +1166,7 @@ public:
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
 
-			std::cout << " - pos: " << pos << std::endl;
+			std::cout << " - pos4: " << pos << std::endl;
 			std::cout << " - bitset: " << begin_iterator.group_pointer->bitset << std::endl;
 
 			return begin_iterator;
@@ -2024,41 +2024,10 @@ public:
 
 			if (!(prev_skipfield | after_skipfield)) // no consecutive erased elements
 			{
-				#if 0
-				*it.skipfield_pointer = 1; // solo skipped node
-				const skipfield_type index = static_cast<skipfield_type>(it.element_pointer - it.group_pointer->elements);
-
-				if (it.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max()) // ie. if this group already has some erased elements
-				{
-					edit_free_list_next(it.group_pointer->elements + it.group_pointer->free_list_head, index); // set prev free list head's 'next index' number to the index of the current element
-				}
-				else
-				{
-					it.group_pointer->erasures_list_next_group = erasure_groups_head; // add it to the groups-with-erasures free list
-
-					if (erasure_groups_head != nullptr)
-					{
-						erasure_groups_head->erasures_list_previous_group = it.group_pointer;
-					}
-
-					erasure_groups_head = it.group_pointer;
-				}
-
-				edit_free_list_head(it.element_pointer, it.group_pointer->free_list_head);
-				it.group_pointer->free_list_head = index;
-				#endif
-
 				// This is solo skipped node
 				*it.skipfield_pointer = 1;
 
-				// Index of the bucket where the element is placed
-				const std::size_t pos = std::distance
-				(
-					it.group_pointer->elements,
-					it.element_pointer
-				);
-
-				// If this group doesn't contain any erased element
+				// If all buckets are occupied
 				if (it.group_pointer->bitset.all())
 				{
 					// Add this group to the erasure list
@@ -2071,51 +2040,20 @@ public:
 
 					erasure_groups_head = it.group_pointer;
 				}
-
-				// Mark the bucket as unoccupied
-				it.group_pointer->bitset.reset(pos);
 			}
 			else if (prev_skipfield & (!after_skipfield)) // previous erased consecutive elements, none following
 			{
-				#if 0
 				*(it.skipfield_pointer - *(it.skipfield_pointer - 1)) = *it.skipfield_pointer = static_cast<skipfield_type>(*(it.skipfield_pointer - 1) + 1);
-				#endif
-				assert(!"222222222");
 			}
 			else if ((!prev_skipfield) & after_skipfield) // following erased consecutive elements, none preceding
 			{
-				#if 0
 				const skipfield_type following_value = static_cast<skipfield_type>(*(it.skipfield_pointer + 1) + 1);
 				*(it.skipfield_pointer + following_value - 1) = *(it.skipfield_pointer) = following_value;
 
-				const skipfield_type following_previous = *(pointer_cast<skipfield_pointer_type>(it.element_pointer + 1));
-				const skipfield_type following_next = *(pointer_cast<skipfield_pointer_type>(it.element_pointer + 1) + 1);
-				edit_free_list_prev(it.element_pointer, following_previous);
-				edit_free_list_next(it.element_pointer, following_next);
-
-				const skipfield_type index = static_cast<skipfield_type>(it.element_pointer - it.group_pointer->elements);
-
-				if (following_previous != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(it.group_pointer->elements + following_previous, index); // Set next index of previous free list node to this node's 'next' index
-				}
-
-				if (following_next != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_prev(it.group_pointer->elements + following_next, index);	// Set previous index of next free list node to this node's 'previous' index
-				}
-				else
-				{
-					it.group_pointer->free_list_head = index;
-				}
-
 				update_value = following_value;
-				#endif
-				assert(!"3333333333");
 			}
 			else // both preceding and following consecutive erased elements - erased element is between two skipblocks
 			{
-				#if 0
 				*(it.skipfield_pointer) = 1; // This line necessary in order for get_iterator() to work - ensures that erased element skipfield nodes are always non-zero
 				const skipfield_type preceding_value = *(it.skipfield_pointer - 1);
 				const skipfield_type following_value = static_cast<skipfield_type>(*(it.skipfield_pointer + 1) + 1);
@@ -2123,28 +2061,18 @@ public:
 				// Join the skipblocks
 				*(it.skipfield_pointer - preceding_value) = *(it.skipfield_pointer + following_value - 1) = static_cast<skipfield_type>(preceding_value + following_value);
 
-				// Remove the following skipblock's entry from the free list
-				const skipfield_type following_previous = *(pointer_cast<skipfield_pointer_type>(it.element_pointer + 1));
-				const skipfield_type following_next = *(pointer_cast<skipfield_pointer_type>(it.element_pointer + 1) + 1);
-
-				if (following_previous != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(it.group_pointer->elements + following_previous, following_next); // Set next index of previous free list node to this node's 'next' index
-				}
-
-				if (following_next != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_prev(it.group_pointer->elements + following_next, following_previous); // Set previous index of next free list node to this node's 'previous' index
-				}
-				else
-				{
-					it.group_pointer->free_list_head = following_previous;
-				}
-
 				update_value = following_value;
-				#endif
-				assert(!"4444444444");
 			}
+
+			// Index of the bucket where the element is placed
+			const std::size_t pos = std::distance
+			(
+				it.group_pointer->elements,
+				it.element_pointer
+			);
+
+			// Mark the bucket as unoccupied
+			it.group_pointer->bitset.reset(pos);
 
 			iterator return_iterator(it.group_pointer, it.element_pointer + update_value, it.skipfield_pointer + update_value);
 
