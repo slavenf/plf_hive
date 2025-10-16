@@ -26,4 +26,31 @@ int main()
         std::cout << elem << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "-----------------------------------------------" << std::endl;
+
+    h.erase(it_60);
+
+    std::cout << "size:     " << h.size() << std::endl;
+    std::cout << "capacity: " << h.capacity() << std::endl;
+    std::cout << "elements: ";
+    for (const auto& elem : h)
+    {
+        std::cout << elem << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "-----------------------------------------------" << std::endl;
+
+    h.insert(1111);
+    h.insert(100);
+
+    std::cout << "size:     " << h.size() << std::endl;
+    std::cout << "capacity: " << h.capacity() << std::endl;
+    std::cout << "elements: ";
+    for (const auto& elem : h)
+    {
+        std::cout << elem << " ";
+    }
+    std::cout << std::endl;
 }

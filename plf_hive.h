@@ -867,8 +867,9 @@ private:
 		edit_free_list(converted_location + 1, std::numeric_limits<skipfield_type>::max());
 	}
 
+	#endif
 
-
+	#if 0 // TODO: This is old function. Can be removed.
 	void update_skipblock(const iterator &new_location, const skipfield_type prev_free_list_index) noexcept
 	{
 		const skipfield_type new_value = static_cast<skipfield_type>(*(new_location.skipfield_pointer) - 1);
@@ -912,8 +913,39 @@ private:
 
 		++total_size;
 	}
+	#endif
 
+	void update_skipblock(const iterator &new_location) noexcept
+	{
+		const skipfield_type new_value = static_cast<skipfield_type>(*(new_location.skipfield_pointer) - 1);
 
+		if (new_value != 0) // ie. skipfield was not 1, ie. a single-node skipblock, with no additional nodes to update
+		{
+			// set (new) start and (original) end of skipblock to new value:
+			*(new_location.skipfield_pointer + new_value) = *(new_location.skipfield_pointer + 1) = new_value;
+		}
+		else // single-node skipblock, remove skipblock
+		{
+			// If all buckets are occupied
+			if (new_location.group_pointer->bitset.all())
+			{
+				// Remove this group from the list of groups with erasures
+				erasure_groups_head = erasure_groups_head->erasures_list_next_group; // No need to update previous group for new head, as this is never accessed if group == head
+			}
+		}
+
+		*(new_location.skipfield_pointer) = 0;
+		++(new_location.group_pointer->size);
+
+		if (new_location.group_pointer == begin_iterator.group_pointer && new_location.element_pointer < begin_iterator.element_pointer)
+		{ /* ie. begin_iterator was moved forwards as the result of an erasure at some point, this erased element is before the current begin, hence, set current begin iterator to this element */
+			begin_iterator = new_location;
+		}
+
+		++total_size;
+	}
+
+	#if 0
 
 	void reset() noexcept
 	{
@@ -980,115 +1012,136 @@ public:
 			{
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
-					construct_element(end_iterator.element_pointer, element);
+					// Iterator to the unoccupied bucket - it is always end_iterator in this case
+					const iterator it = end_iterator;
 
-					const iterator return_iterator = end_iterator;
+					// Construct element at the unoccupied bucket
+					construct_element(it.element_pointer, element);
+
+					// Index of the bucket where the element is inserted
+					const std::size_t pos = std::distance
+					(
+						it.group_pointer->elements,
+						it.element_pointer
+					);
+
+					// Mark the bucket as occupied
+					it.group_pointer->bitset.set(pos);
+
+					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
 					++end_iterator.skipfield_pointer;
 					++(end_iterator.group_pointer->size);
 					++total_size;
 
-					// Index of the bucket where the element is inserted
-					const std::size_t pos = std::distance
-					(
-						return_iterator.group_pointer->elements,
-						return_iterator.element_pointer
-					);
-
-					// Mark the bucket as occupied
-					return_iterator.group_pointer->bitset.set(pos);
-
 					std::cout << " - pos: " << pos << std::endl;
-					std::cout << " - bitset: " << return_iterator.group_pointer->bitset << std::endl;
+					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
 
-					return return_iterator;
+					return it;
 				}
-
-				group_pointer_type next_group;
-
-				if (unused_groups_head == nullptr)
+				else // end_iterator is at the end of block, we need new group
 				{
-					const skipfield_type new_group_size = static_cast<skipfield_type>(std::min(total_size, static_cast<size_type>(max_block_capacity)));
-					reset_group_numbers_if_necessary();
-					next_group = allocate_new_group(new_group_size, end_iterator.group_pointer);
+					group_pointer_type next_group;
 
-					#ifdef PLF_EXCEPTIONS_SUPPORT
-						if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
-						{
-							try
-							{
-								construct_element(next_group->elements, element);
-							}
-							catch (...)
-							{
-								deallocate_group(next_group);
-								throw;
-							}
-						}
-						else
-					#endif
+					if (unused_groups_head == nullptr) // ie. there are no unused groups, allocate new group
 					{
-						construct_element(next_group->elements, element);
+						const skipfield_type new_group_size = static_cast<skipfield_type>(std::min(total_size, static_cast<size_type>(max_block_capacity)));
+						reset_group_numbers_if_necessary();
+						next_group = allocate_new_group(new_group_size, end_iterator.group_pointer);
+
+						#ifdef PLF_EXCEPTIONS_SUPPORT
+							if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
+							{
+								try
+								{
+									construct_element(next_group->elements, element);
+								}
+								catch (...)
+								{
+									deallocate_group(next_group);
+									throw;
+								}
+							}
+							else
+						#endif
+						{
+							construct_element(next_group->elements, element);
+						}
+
+						total_capacity += new_group_size;
+					}
+					else // there are unused groups, reuse those groups
+					{
+						#if 0
+						construct_element(unused_groups_head->elements, element);
+						next_group = reuse_unused_group();
+						#endif
+
+						assert(!"TODO: NOT REVIEWED");
 					}
 
-					total_capacity += new_group_size;
+					// Iterator to the inserted element
+					const iterator it(next_group, next_group->elements, next_group->skipfield);
+
+					// Index of the bucket where the element is inserted - it is always zero in this case
+					constexpr std::size_t pos = 0;
+
+					// Mark the bucket as occupied
+					it.group_pointer->bitset.set(pos);
+
+					// Update end_iterator and total_size
+					end_iterator.group_pointer->next_group = next_group;
+					end_iterator.group_pointer = next_group;
+					end_iterator.element_pointer = next_group->elements + 1;
+					end_iterator.skipfield_pointer = next_group->skipfield + 1;
+					++total_size;
+
+					std::cout << " - pos: " << pos << std::endl;
+					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
+
+					return it;
 				}
-				else
-				{
-					#if 0
-					construct_element(unused_groups_head->elements, element);
-					next_group = reuse_unused_group();
-					#endif
-
-					assert(!"22222222222");
-					return end_iterator;
-				}
-
-				end_iterator.group_pointer->next_group = next_group;
-				end_iterator.group_pointer = next_group;
-				end_iterator.element_pointer = next_group->elements + 1;
-				end_iterator.skipfield_pointer = next_group->skipfield + 1;
-				++total_size;
-
-				// Index of the bucket where the element is inserted - it is always zero in this case
-				constexpr std::size_t pos = 0;
-
-				// Mark the bucket as occupied
-				end_iterator.group_pointer->bitset.set(pos);
-
-				std::cout << " - pos: " << pos << std::endl;
-				std::cout << " - bitset: " << end_iterator.group_pointer->bitset << std::endl;
-
-				return iterator(next_group, next_group->elements, next_group->skipfield);
 			}
 			else // there are erased elements, reuse those memory locations
 			{
-				#if 0
-				iterator new_location(erasure_groups_head, erasure_groups_head->elements + erasure_groups_head->free_list_head, erasure_groups_head->skipfield + erasure_groups_head->free_list_head);
+				// Index of the first unoccupied bucket
+				const std::size_t pos = erasure_groups_head->bitset.first_zero();
 
-				// We always reuse the element at the start of the skipblock, this is also where the free-list information for that skipblock is stored. Get the previous free-list node's index from this memory space, before we write to our element to it. 'Next' index is always the free_list_head (as represented by the maximum value of the skipfield type) here so we don't need to get it:
-				const skipfield_type prev_free_list_index = *pointer_cast<skipfield_pointer_type>(new_location.element_pointer);
-				construct_element(new_location.element_pointer, element);
-				update_skipblock(new_location, prev_free_list_index);
+				std::cout << " - pos: " << pos << std::endl;
+				std::cout << " - bitset before: " << erasure_groups_head->bitset << std::endl;
 
-				return new_location;
-				#endif
+				// Iterator to the unoccupied bucket
+				const iterator it
+				(
+					erasure_groups_head,
+					std::next(erasure_groups_head->elements, pos),
+					std::next(erasure_groups_head->skipfield, pos)
+				);
 
-				assert(!"3333333333");
-				return end_iterator;
+				// Construct element at the unoccupied bucket
+				construct_element(it.element_pointer, element);
+
+				// Mark the bucket as occupied
+				it.group_pointer->bitset.set(pos);
+
+				std::cout << " - bitset after:  " << erasure_groups_head->bitset << std::endl;
+
+				// Update skipblock
+				update_skipblock(it);
+
+				return it;
 			}
 		}
 		else // ie. newly-constructed hive, no insertions yet and no groups
 		{
 			initialize(min_block_capacity);
 
-
 			#ifdef PLF_EXCEPTIONS_SUPPORT
 				if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
 				{
 					try
 					{
-						construct_element(end_iterator.element_pointer++, element);
+						construct_element(begin_iterator.element_pointer, element);
 					}
 					catch (...)
 					{
@@ -1099,20 +1152,22 @@ public:
 				else
 			#endif
 			{
-				construct_element(end_iterator.element_pointer++, element);
+				construct_element(begin_iterator.element_pointer, element);
 			}
-
-			++end_iterator.skipfield_pointer;
-			total_size = 1;
 
 			// Index of the bucket where the element is inserted - it is always zero in this case
 			constexpr std::size_t pos = 0;
 
 			// Mark the bucket as occupied
-			end_iterator.group_pointer->bitset.set(pos);
+			begin_iterator.group_pointer->bitset.set(pos);
+
+			// Update end_iterator and total_size
+			++end_iterator.element_pointer;
+			++end_iterator.skipfield_pointer;
+			total_size = 1;
 
 			std::cout << " - pos: " << pos << std::endl;
-			std::cout << " - bitset: " << end_iterator.group_pointer->bitset << std::endl;
+			std::cout << " - bitset: " << begin_iterator.group_pointer->bitset << std::endl;
 
 			return begin_iterator;
 		}
@@ -1933,7 +1988,7 @@ private:
 		unused_groups_head = group_pointer;
 	}
 
-
+	#endif
 
 public:
 
@@ -1969,6 +2024,7 @@ public:
 
 			if (!(prev_skipfield | after_skipfield)) // no consecutive erased elements
 			{
+				#if 0
 				*it.skipfield_pointer = 1; // solo skipped node
 				const skipfield_type index = static_cast<skipfield_type>(it.element_pointer - it.group_pointer->elements);
 
@@ -1990,13 +2046,45 @@ public:
 
 				edit_free_list_head(it.element_pointer, it.group_pointer->free_list_head);
 				it.group_pointer->free_list_head = index;
+				#endif
+
+				// This is solo skipped node
+				*it.skipfield_pointer = 1;
+
+				// Index of the bucket where the element is placed
+				const std::size_t pos = std::distance
+				(
+					it.group_pointer->elements,
+					it.element_pointer
+				);
+
+				// If this group doesn't contain any erased element
+				if (it.group_pointer->bitset.all())
+				{
+					// Add this group to the erasure list
+					it.group_pointer->erasures_list_next_group = erasure_groups_head;
+
+					if (erasure_groups_head != nullptr)
+					{
+						erasure_groups_head->erasures_list_previous_group = it.group_pointer;
+					}
+
+					erasure_groups_head = it.group_pointer;
+				}
+
+				// Mark the bucket as unoccupied
+				it.group_pointer->bitset.reset(pos);
 			}
 			else if (prev_skipfield & (!after_skipfield)) // previous erased consecutive elements, none following
 			{
+				#if 0
 				*(it.skipfield_pointer - *(it.skipfield_pointer - 1)) = *it.skipfield_pointer = static_cast<skipfield_type>(*(it.skipfield_pointer - 1) + 1);
+				#endif
+				assert(!"222222222");
 			}
 			else if ((!prev_skipfield) & after_skipfield) // following erased consecutive elements, none preceding
 			{
+				#if 0
 				const skipfield_type following_value = static_cast<skipfield_type>(*(it.skipfield_pointer + 1) + 1);
 				*(it.skipfield_pointer + following_value - 1) = *(it.skipfield_pointer) = following_value;
 
@@ -2022,9 +2110,12 @@ public:
 				}
 
 				update_value = following_value;
+				#endif
+				assert(!"3333333333");
 			}
 			else // both preceding and following consecutive erased elements - erased element is between two skipblocks
 			{
+				#if 0
 				*(it.skipfield_pointer) = 1; // This line necessary in order for get_iterator() to work - ensures that erased element skipfield nodes are always non-zero
 				const skipfield_type preceding_value = *(it.skipfield_pointer - 1);
 				const skipfield_type following_value = static_cast<skipfield_type>(*(it.skipfield_pointer + 1) + 1);
@@ -2051,6 +2142,8 @@ public:
 				}
 
 				update_value = following_value;
+				#endif
+				assert(!"4444444444");
 			}
 
 			iterator return_iterator(it.group_pointer, it.element_pointer + update_value, it.skipfield_pointer + update_value);
@@ -2074,12 +2167,16 @@ public:
 
 		if (in_back_block & in_front_block) // ie. only group in hive
 		{
+			#if 0
 			// Reset skipfield and free list rather than clearing - leads to fewer allocations/deallocations:
 			reset_only_group_left(it.group_pointer);
 			return end_iterator;
+			#endif
+			assert(!"555555555"); return end_iterator;
 		}
 		else if ((!in_back_block) & in_front_block) // ie. Remove first group, change first group to next group
 		{
+			#if 0
 			it.group_pointer->next_group->previous_group = nullptr; // Cut off this group from the chain
 			begin_iterator.group_pointer = it.group_pointer->next_group; // Make the next group the first group
 
@@ -2096,9 +2193,12 @@ public:
 			begin_iterator.skipfield_pointer = begin_iterator.group_pointer->skipfield + *(begin_iterator.group_pointer->skipfield);
 
 			return begin_iterator;
+			#endif
+			assert(!"6666666666"); return end_iterator;
 		}
 		else if (!(in_back_block | in_front_block)) // this is a non-first group but not final group in chain: delete the group, then link previous group to the next group in the chain:
 		{
+			#if 0
 			it.group_pointer->next_group->previous_group = it.group_pointer->previous_group;
 			const group_pointer_type return_group = it.group_pointer->previous_group->next_group = it.group_pointer->next_group; // close the chain, removing this group from it
 
@@ -2119,9 +2219,12 @@ public:
 
 			// Return next group's first non-erased element:
 			return iterator(return_group, return_group->elements + *(return_group->skipfield), return_group->skipfield + *(return_group->skipfield));
+			#endif
+			assert(!"77777777777"); return end_iterator;
 		}
 		else // this is a non-first group and the final group in the chain
 		{
+			#if 0
 			if (it.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max())
 			{
 				remove_from_groups_with_erasures_list(it.group_pointer);
@@ -2135,10 +2238,12 @@ public:
 			add_group_to_unused_groups_list(it.group_pointer);
 
 			return end_iterator;
+			#endif
+			assert(!"8888888888"); return end_iterator;
 		}
 	}
 
-
+	#if 0
 
 	// Range erase:
 
