@@ -1954,7 +1954,6 @@ private:
 
 	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) noexcept
 	{
-		#if 0 // TODO: This is old (original) code. Is it the same as new code below?
 		if (group_to_remove != erasure_groups_head)
 		{
 			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
@@ -1968,23 +1967,9 @@ private:
 		{
 			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
-		#endif
 
-		#if 1 // TODO: This is new code. Is it the same as old code above?
-		if (group_to_remove->erasures_list_next_group != nullptr)
-		{
-			group_to_remove->erasures_list_next_group->erasures_list_previous_group = group_to_remove->erasures_list_previous_group;
-		}
-
-		if (group_to_remove->erasures_list_previous_group != nullptr)
-		{
-			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
-		}
-		else
-		{
-			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
-		}
-		#endif
+		group_to_remove->erasures_list_next_group = nullptr;
+		group_to_remove->erasures_list_previous_group = nullptr;
 	}
 
 
@@ -2056,8 +2041,15 @@ public:
 				// This is solo skipped node
 				*it.skipfield_pointer = 1;
 
-				// If group was full before erasure
-				if (it.group_pointer->size + 1 == it.group_pointer->capacity)
+				// If group is not already in erasure list
+				if
+				(
+					it.group_pointer->erasures_list_next_group == nullptr
+					&&
+					it.group_pointer->erasures_list_previous_group == nullptr
+					&&
+					erasure_groups_head != it.group_pointer
+				)
 				{
 					// Add this group to the erasure list
 					it.group_pointer->erasures_list_next_group = erasure_groups_head;
