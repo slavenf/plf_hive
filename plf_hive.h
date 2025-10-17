@@ -983,7 +983,7 @@ private:
 		if (end_iterator.group_pointer->group_number == std::numeric_limits<size_type>::max()) [[unlikely]] reset_group_numbers();
 	}
 
-	#if 0
+
 
 	group_pointer_type reuse_unused_group() noexcept
 	{
@@ -994,7 +994,7 @@ private:
 		return reused_group;
 	}
 
-	#endif
+
 
 	template<typename... arguments>
 	constexpr void construct_element(const aligned_pointer_type location, arguments &&... parameters)
@@ -1077,12 +1077,8 @@ public:
 					}
 					else // there are unused groups, reuse those groups
 					{
-						#if 0
 						construct_element(unused_groups_head->elements, element);
 						next_group = reuse_unused_group();
-						#endif
-
-						assert(!"TODO: NOT REVIEWED");
 					}
 
 					// Iterator to the inserted element
@@ -1952,12 +1948,13 @@ public:
 		range_insert(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-
+	#endif
 
 private:
 
 	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) noexcept
 	{
+		#if 0 // TODO: This is old (original) code. Is it the same as new code below?
 		if (group_to_remove != erasure_groups_head)
 		{
 			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
@@ -1971,9 +1968,26 @@ private:
 		{
 			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
+		#endif
+
+		#if 1 // TODO: This is new code. Is it the same as old code above?
+		if (group_to_remove->erasures_list_next_group != nullptr)
+		{
+			group_to_remove->erasures_list_next_group->erasures_list_previous_group = group_to_remove->erasures_list_previous_group;
+		}
+
+		if (group_to_remove->erasures_list_previous_group != nullptr)
+		{
+			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
+		}
+		else
+		{
+			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
+		}
+		#endif
 	}
 
-	#endif
+
 
 	void reset_only_group_left(const group_pointer_type group_pointer) noexcept
 	{
@@ -1985,7 +1999,7 @@ private:
 		end_iterator.skipfield_pointer = begin_iterator.skipfield_pointer = group_pointer->skipfield;
 	}
 
-	#if 0
+
 
 	void add_group_to_unused_groups_list(group * const group_pointer) noexcept
 	{
@@ -1993,7 +2007,7 @@ private:
 		unused_groups_head = group_pointer;
 	}
 
-	#endif
+
 
 public:
 
@@ -2106,14 +2120,10 @@ public:
 		}
 		else if ((!in_back_block) & in_front_block) // ie. Remove first group, change first group to next group
 		{
-			#if 0
 			it.group_pointer->next_group->previous_group = nullptr; // Cut off this group from the chain
 			begin_iterator.group_pointer = it.group_pointer->next_group; // Make the next group the first group
 
-			if (it.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max()) // Erasures present within the group, ie. was part of the linked list of groups with erasures.
-			{
-				remove_from_groups_with_erasures_list(it.group_pointer);
-			}
+			remove_from_groups_with_erasures_list(it.group_pointer);
 
 			total_capacity -= it.group_pointer->capacity;
 			deallocate_group(it.group_pointer);
@@ -2123,19 +2133,13 @@ public:
 			begin_iterator.skipfield_pointer = begin_iterator.group_pointer->skipfield + *(begin_iterator.group_pointer->skipfield);
 
 			return begin_iterator;
-			#endif
-			assert(!"6666666666"); return end_iterator;
 		}
 		else if (!(in_back_block | in_front_block)) // this is a non-first group but not final group in chain: delete the group, then link previous group to the next group in the chain:
 		{
-			#if 0
 			it.group_pointer->next_group->previous_group = it.group_pointer->previous_group;
 			const group_pointer_type return_group = it.group_pointer->previous_group->next_group = it.group_pointer->next_group; // close the chain, removing this group from it
 
-			if (it.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max())
-			{
-				remove_from_groups_with_erasures_list(it.group_pointer);
-			}
+			remove_from_groups_with_erasures_list(it.group_pointer);
 
 			if (it.group_pointer->next_group != end_iterator.group_pointer)
 			{
@@ -2149,16 +2153,10 @@ public:
 
 			// Return next group's first non-erased element:
 			return iterator(return_group, return_group->elements + *(return_group->skipfield), return_group->skipfield + *(return_group->skipfield));
-			#endif
-			assert(!"77777777777"); return end_iterator;
 		}
 		else // this is a non-first group and the final group in the chain
 		{
-			#if 0
-			if (it.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max())
-			{
-				remove_from_groups_with_erasures_list(it.group_pointer);
-			}
+			remove_from_groups_with_erasures_list(it.group_pointer);
 
 			it.group_pointer->previous_group->next_group = nullptr;
 			end_iterator.group_pointer = it.group_pointer->previous_group; // end iterator needs to be changed as element supplied was the back element of the hive
@@ -2168,8 +2166,6 @@ public:
 			add_group_to_unused_groups_list(it.group_pointer);
 
 			return end_iterator;
-			#endif
-			assert(!"8888888888"); return end_iterator;
 		}
 	}
 
