@@ -66,10 +66,10 @@ int main()
 
         std::cout << "Insert initial elements..." << std::endl;
 
-        h.insert(10);
-        h.insert(20);
-        h.insert(30);
-        h.insert(40);
+        auto it0 = h.insert(10); (void)it0;
+        auto it1 = h.insert(20); (void)it1;
+        auto it2 = h.insert(30); (void)it2;
+        auto it3 = h.insert(40); (void)it3;
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
@@ -80,7 +80,7 @@ int main()
 
         std::cout << "Erase at position 0..." << std::endl;
 
-        h.erase(nth(h, 0));
+        h.erase(it0);
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
@@ -101,7 +101,7 @@ int main()
 
         std::cout << "Erase at position 1..." << std::endl;
 
-        h.erase(nth(h, 1));
+        h.erase(it1);
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
@@ -122,7 +122,7 @@ int main()
 
         std::cout << "Erase at position 2..." << std::endl;
 
-        h.erase(nth(h, 2));
+        h.erase(it2);
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
@@ -143,7 +143,7 @@ int main()
 
         std::cout << "Erase at position 3..." << std::endl;
 
-        h.erase(nth(h, 3));
+        h.erase(it3);
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
