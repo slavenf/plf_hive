@@ -60,7 +60,7 @@ int main()
         }
     }
 
-    // Test erase at single position (single group in container)
+    // Test erase at single position in the same group
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
 
@@ -163,7 +163,7 @@ int main()
         assert(*nth(h, 3) == 41);
     }
 
-    // Test erase at positions 0, 1 and 2 (single group in container)
+    // Test erase at positions 0, 1 and 2 in the same group
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
 
@@ -205,7 +205,7 @@ int main()
         assert(*nth(h, 3) == 40);
     }
 
-    // Test erase at positions 2, 1 and 0 (single group in container)
+    // Test erase at positions 2, 1 and 0 in the same group
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
 
@@ -247,7 +247,7 @@ int main()
         assert(*nth(h, 3) == 40);
     }
 
-    // Test erase at positions 0, 2 and 1 (single group in container)
+    // Test erase at positions 0, 2 and 1 in the same group
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
 
@@ -289,7 +289,7 @@ int main()
         assert(*nth(h, 3) == 40);
     }
 
-    // Test erase at positions 2, 0 and 1 (single group in container)
+    // Test erase at positions 2, 0 and 1 in the same group
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
 
@@ -329,5 +329,70 @@ int main()
         assert(*nth(h, 1) == 21);
         assert(*nth(h, 2) == 31);
         assert(*nth(h, 3) == 40);
+    }
+
+    // Test erase at two positions in different groups
+    {
+        plf::hive<int> h(plf::hive_limits(4, 128));
+
+        std::cout << "Insert initial elements..." << std::endl;
+
+        auto it0 = h.insert(10);    (void)it0;
+        auto it1 = h.insert(20);    (void)it1;
+        auto it2 = h.insert(30);    (void)it2;
+        auto it3 = h.insert(40);    (void)it3;
+        auto it4 = h.insert(50);    (void)it4;
+        auto it5 = h.insert(60);    (void)it5;
+        auto it6 = h.insert(70);    (void)it6;
+        auto it7 = h.insert(80);    (void)it7;
+        auto it8 = h.insert(90);    (void)it8;
+        auto it9 = h.insert(100);   (void)it9;
+
+        assert(h.size() == 10);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 20);
+        assert(*nth(h, 2) == 30);
+        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 4) == 50);
+        assert(*nth(h, 5) == 60);
+        assert(*nth(h, 6) == 70);
+        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 8) == 90);
+        assert(*nth(h, 9) == 100);
+
+        std::cout << "Erase at position 1 and 5..." << std::endl;
+
+        h.erase(it1);
+        h.erase(it5);
+
+        assert(h.size() == 8);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 30);
+        assert(*nth(h, 2) == 40);
+        assert(*nth(h, 3) == 50);
+        assert(*nth(h, 4) == 70);
+        assert(*nth(h, 5) == 80);
+        assert(*nth(h, 6) == 90);
+        assert(*nth(h, 7) == 100);
+
+        std::cout << "Erase two elements..." << std::endl;
+
+        h.insert(21);
+        h.insert(61);
+
+        assert(h.size() == 10);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 61);   // THIS ELEMENT IS INSERTED 2nd
+        assert(*nth(h, 2) == 30);
+        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 4) == 50);
+        assert(*nth(h, 5) == 21);   // THIS ELEMENT IS INSERTED 1st
+        assert(*nth(h, 6) == 70);
+        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 8) == 90);
+        assert(*nth(h, 9) == 100);
     }
 }
