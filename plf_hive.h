@@ -1952,6 +1952,23 @@ public:
 
 private:
 
+	bool is_group_in_erasures_list(const group_pointer_type group) noexcept
+	{
+		return erasure_groups_head == group || group->erasures_list_previous_group != nullptr;
+	}
+
+	void add_group_to_erasures_list(const group_pointer_type group) noexcept
+	{
+		group->erasures_list_next_group = erasure_groups_head;
+
+		if (erasure_groups_head != nullptr)
+		{
+			erasure_groups_head->erasures_list_previous_group = group;
+		}
+
+		erasure_groups_head = group;
+	}
+
 	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) noexcept
 	{
 		if (group_to_remove != erasure_groups_head)
@@ -2041,25 +2058,9 @@ public:
 				// This is solo skipped node
 				*it.skipfield_pointer = 1;
 
-				// If group is not already in erasure list
-				if
-				(
-					it.group_pointer->erasures_list_next_group == nullptr
-					&&
-					it.group_pointer->erasures_list_previous_group == nullptr
-					&&
-					erasure_groups_head != it.group_pointer
-				)
+				if (!is_group_in_erasures_list(it.group_pointer))
 				{
-					// Add this group to the erasure list
-					it.group_pointer->erasures_list_next_group = erasure_groups_head;
-
-					if (erasure_groups_head != nullptr)
-					{
-						erasure_groups_head->erasures_list_previous_group = it.group_pointer;
-					}
-
-					erasure_groups_head = it.group_pointer;
+					add_group_to_erasures_list(it.group_pointer);
 				}
 			}
 			else if (prev_skipfield & (!after_skipfield)) // previous erased consecutive elements, none following
