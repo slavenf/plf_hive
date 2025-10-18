@@ -6,9 +6,15 @@
 #include "plf_hive.h"
 
 template <typename Container, typename Size>
-typename Container::const_iterator nth(const Container& c, Size pos)
+auto nth(const Container& c, Size pos)
 {
-    typename Container::const_iterator it = c.cbegin();
+    #if 1
+
+    return std::next(c.begin(), pos);
+
+    #else
+
+    auto it = c.begin();
 
     for (Size i = 0; i < pos; ++i)
     {
@@ -16,6 +22,29 @@ typename Container::const_iterator nth(const Container& c, Size pos)
     }
 
     return it;
+
+    #endif
+}
+
+template <typename Container, typename Size>
+auto rnth(const Container& c, Size pos)
+{
+    #if 1
+
+    return std::next(c.rbegin(), pos);
+
+    #else
+
+    auto it = c.rbegin();
+
+    for (Size i = 0; i < pos; ++i)
+    {
+        ++it;
+    }
+
+    return it;
+
+    #endif
 }
 
 int main()
@@ -73,10 +102,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 0..." << std::endl;
 
@@ -84,9 +113,9 @@ int main()
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 20);
-        assert(*nth(h, 1) == 30);
-        assert(*nth(h, 2) == 40);
+        assert(*nth(h, 0) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -94,10 +123,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 1..." << std::endl;
 
@@ -105,9 +134,9 @@ int main()
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 30);
-        assert(*nth(h, 2) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
+        assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -115,10 +144,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 2..." << std::endl;
 
@@ -126,9 +155,9 @@ int main()
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
+        assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -136,10 +165,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 3..." << std::endl;
 
@@ -147,9 +176,9 @@ int main()
 
         assert(h.size() == 3);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 0) == 31);
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -157,10 +186,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 41);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 41); assert(*rnth(h, 0) == 41);
     }
 
     // Test erase at positions 0, 1 and 2 in the same group
@@ -176,10 +205,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 0, 1 and 2..." << std::endl;
 
@@ -189,7 +218,7 @@ int main()
 
         assert(h.size() == 1);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 40);
+        assert(*nth(h, 0) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert three elements..." << std::endl;
 
@@ -199,10 +228,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
     }
 
     // Test erase at positions 2, 1 and 0 in the same group
@@ -218,10 +247,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 2, 1 and 0..." << std::endl;
 
@@ -231,7 +260,7 @@ int main()
 
         assert(h.size() == 1);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 40);
+        assert(*nth(h, 0) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert three elements..." << std::endl;
 
@@ -241,10 +270,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
     }
 
     // Test erase at positions 0, 2 and 1 in the same group
@@ -260,10 +289,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 0, 2 and 1..." << std::endl;
 
@@ -273,7 +302,7 @@ int main()
 
         assert(h.size() == 1);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 40);
+        assert(*nth(h, 0) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert three elements..." << std::endl;
 
@@ -283,10 +312,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
     }
 
     // Test erase at positions 2, 0 and 1 in the same group
@@ -302,10 +331,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 2, 0 and 1..." << std::endl;
 
@@ -315,7 +344,7 @@ int main()
 
         assert(h.size() == 1);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 40);
+        assert(*nth(h, 0) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Insert three elements..." << std::endl;
 
@@ -325,10 +354,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 11);
-        assert(*nth(h, 1) == 21);
-        assert(*nth(h, 2) == 31);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 11); assert(*rnth(h, 3) == 11);
+        assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
+        assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
     }
 
     // Test erase at two positions in different groups
@@ -350,16 +379,16 @@ int main()
 
         assert(h.size() == 10);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
-        assert(*nth(h, 9) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 9) == 10);
+        assert(*nth(h, 1) == 20);  assert(*rnth(h, 8) == 20);
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 7) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 6) == 40);
+        assert(*nth(h, 4) == 50);  assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 5) == 60);  assert(*rnth(h, 4) == 60);
+        assert(*nth(h, 6) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Erase at position 1 and 5..." << std::endl;
 
@@ -368,14 +397,14 @@ int main()
 
         assert(h.size() == 8);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 30);
-        assert(*nth(h, 2) == 40);
-        assert(*nth(h, 3) == 50);
-        assert(*nth(h, 4) == 70);
-        assert(*nth(h, 5) == 80);
-        assert(*nth(h, 6) == 90);
-        assert(*nth(h, 7) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 7) == 10);
+        assert(*nth(h, 1) == 30);  assert(*rnth(h, 6) == 30);
+        assert(*nth(h, 2) == 40);  assert(*rnth(h, 5) == 40);
+        assert(*nth(h, 3) == 50);  assert(*rnth(h, 4) == 50);
+        assert(*nth(h, 4) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 5) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 6) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 7) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Erase two elements..." << std::endl;
 
@@ -384,16 +413,16 @@ int main()
 
         assert(h.size() == 10);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 61);   // THIS ELEMENT IS INSERTED 2nd
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 21);   // THIS ELEMENT IS INSERTED 1st
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
-        assert(*nth(h, 9) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 9) == 10);
+        assert(*nth(h, 1) == 61);  assert(*rnth(h, 8) == 61);   // THIS ELEMENT IS INSERTED 2nd
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 7) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 6) == 40);
+        assert(*nth(h, 4) == 50);  assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 5) == 21);  assert(*rnth(h, 4) == 21);   // THIS ELEMENT IS INSERTED 1st
+        assert(*nth(h, 6) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
     }
 
     // Test erase all elements in only group in chain
@@ -409,10 +438,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 0) == 10); assert(*rnth(h, 3) == 10);
+        assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
+        assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
+        assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
         std::cout << "Erase at position 0, 1, 2 and 3..." << std::endl;
 
@@ -433,10 +462,10 @@ int main()
 
         assert(h.size() == 4);
         assert(h.capacity() == 4);
-        assert(*nth(h, 0) == 50);
-        assert(*nth(h, 1) == 60);
-        assert(*nth(h, 2) == 70);
-        assert(*nth(h, 3) == 80);
+        assert(*nth(h, 0) == 50); assert(*rnth(h, 3) == 50);
+        assert(*nth(h, 1) == 60); assert(*rnth(h, 2) == 60);
+        assert(*nth(h, 2) == 70); assert(*rnth(h, 1) == 70);
+        assert(*nth(h, 3) == 80); assert(*rnth(h, 0) == 80);
     }
 
     // Test erase all elements in first group in chain
@@ -458,16 +487,16 @@ int main()
 
         assert(h.size() == 10);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
-        assert(*nth(h, 9) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 9) == 10);
+        assert(*nth(h, 1) == 20);  assert(*rnth(h, 8) == 20);
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 7) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 6) == 40);
+        assert(*nth(h, 4) == 50);  assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 5) == 60);  assert(*rnth(h, 4) == 60);
+        assert(*nth(h, 6) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Erase at position 0, 1, 2 and 3..." << std::endl;
 
@@ -478,12 +507,12 @@ int main()
 
         assert(h.size() == 6);
         assert(h.capacity() == 12);
-        assert(*nth(h, 0) == 50);
-        assert(*nth(h, 1) == 60);
-        assert(*nth(h, 2) == 70);
-        assert(*nth(h, 3) == 80);
-        assert(*nth(h, 4) == 90);
-        assert(*nth(h, 5) == 100);
+        assert(*nth(h, 0) == 50);  assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 1) == 60);  assert(*rnth(h, 4) == 60);
+        assert(*nth(h, 2) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 3) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 4) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 5) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -493,15 +522,15 @@ int main()
 
         assert(h.size() == 9);
         assert(h.capacity() == 12);
-        assert(*nth(h, 0) == 50);
-        assert(*nth(h, 1) == 60);
-        assert(*nth(h, 2) == 70);
-        assert(*nth(h, 3) == 80);
-        assert(*nth(h, 4) == 90);
-        assert(*nth(h, 5) == 100);
-        assert(*nth(h, 6) == 110);
-        assert(*nth(h, 7) == 120);
-        assert(*nth(h, 8) == 130);
+        assert(*nth(h, 0) == 50);  assert(*rnth(h, 8) == 50);
+        assert(*nth(h, 1) == 60);  assert(*rnth(h, 7) == 60);
+        assert(*nth(h, 2) == 70);  assert(*rnth(h, 6) == 70);
+        assert(*nth(h, 3) == 80);  assert(*rnth(h, 5) == 80);
+        assert(*nth(h, 4) == 90);  assert(*rnth(h, 4) == 90);
+        assert(*nth(h, 5) == 100); assert(*rnth(h, 3) == 100);
+        assert(*nth(h, 6) == 110); assert(*rnth(h, 2) == 110);
+        assert(*nth(h, 7) == 120); assert(*rnth(h, 1) == 120);
+        assert(*nth(h, 8) == 130); assert(*rnth(h, 0) == 130);
     }
 
     // Test erase all elements in middle group in chain
@@ -523,16 +552,16 @@ int main()
 
         assert(h.size() == 10);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
-        assert(*nth(h, 9) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 9) == 10);
+        assert(*nth(h, 1) == 20);  assert(*rnth(h, 8) == 20);
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 7) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 6) == 40);
+        assert(*nth(h, 4) == 50);  assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 5) == 60);  assert(*rnth(h, 4) == 60);
+        assert(*nth(h, 6) == 70);  assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Erase at position 4, 5, 6 and 7..." << std::endl;
 
@@ -543,12 +572,12 @@ int main()
 
         assert(h.size() == 6);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 90);
-        assert(*nth(h, 5) == 100);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 5) == 10);
+        assert(*nth(h, 1) == 20);  assert(*rnth(h, 4) == 20);
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 3) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 2) == 40);
+        assert(*nth(h, 4) == 90);  assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 5) == 100); assert(*rnth(h, 0) == 100);
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -558,15 +587,15 @@ int main()
 
         assert(h.size() == 9);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 90);
-        assert(*nth(h, 5) == 100);
-        assert(*nth(h, 6) == 110);
-        assert(*nth(h, 7) == 120);
-        assert(*nth(h, 8) == 130);
+        assert(*nth(h, 0) == 10);  assert(*rnth(h, 8) == 10);
+        assert(*nth(h, 1) == 20);  assert(*rnth(h, 7) == 20);
+        assert(*nth(h, 2) == 30);  assert(*rnth(h, 6) == 30);
+        assert(*nth(h, 3) == 40);  assert(*rnth(h, 5) == 40);
+        assert(*nth(h, 4) == 90);  assert(*rnth(h, 4) == 90);
+        assert(*nth(h, 5) == 100); assert(*rnth(h, 3) == 100);
+        assert(*nth(h, 6) == 110); assert(*rnth(h, 2) == 110);
+        assert(*nth(h, 7) == 120); assert(*rnth(h, 1) == 120);
+        assert(*nth(h, 8) == 130); assert(*rnth(h, 0) == 130);
     }
 
     // Test erase only element in last group in chain
@@ -587,15 +616,15 @@ int main()
 
         assert(h.size() == 9);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 8) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 7) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 6) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 5) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 4) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 3) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 2) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 1) == 80);
+        assert(*nth(h, 8) == 90);   assert(*rnth(h, 0) == 90);
 
         std::cout << "Erase at position 8..." << std::endl;
 
@@ -603,14 +632,14 @@ int main()
 
         assert(h.size() == 8);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 7) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 6) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 5) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 4) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 3) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 2) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 1) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 0) == 80);
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -621,18 +650,18 @@ int main()
 
         assert(h.size() == 12);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 110);
-        assert(*nth(h, 9) == 120);
-        assert(*nth(h, 10) == 130);
-        assert(*nth(h, 11) == 140);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 11) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 10) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 9) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 8) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 7) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 6) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 5) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 4) == 80);
+        assert(*nth(h, 8) == 110);  assert(*rnth(h, 3) == 110);
+        assert(*nth(h, 9) == 120);  assert(*rnth(h, 2) == 120);
+        assert(*nth(h, 10) == 130); assert(*rnth(h, 1) == 130);
+        assert(*nth(h, 11) == 140); assert(*rnth(h, 0) == 140);
     }
 
     // Test erase all elements in last group in chain
@@ -654,16 +683,16 @@ int main()
 
         assert(h.size() == 10);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 90);
-        assert(*nth(h, 9) == 100);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 9) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 8) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 7) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 6) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 5) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 4) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 3) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 2) == 80);
+        assert(*nth(h, 8) == 90);   assert(*rnth(h, 1) == 90);
+        assert(*nth(h, 9) == 100);  assert(*rnth(h, 0) == 100);
 
         std::cout << "Erase at position 8 and 9..." << std::endl;
 
@@ -672,14 +701,14 @@ int main()
 
         assert(h.size() == 8);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 7) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 6) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 5) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 4) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 3) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 2) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 1) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 0) == 80);
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -690,17 +719,17 @@ int main()
 
         assert(h.size() == 12);
         assert(h.capacity() == 16);
-        assert(*nth(h, 0) == 10);
-        assert(*nth(h, 1) == 20);
-        assert(*nth(h, 2) == 30);
-        assert(*nth(h, 3) == 40);
-        assert(*nth(h, 4) == 50);
-        assert(*nth(h, 5) == 60);
-        assert(*nth(h, 6) == 70);
-        assert(*nth(h, 7) == 80);
-        assert(*nth(h, 8) == 110);
-        assert(*nth(h, 9) == 120);
-        assert(*nth(h, 10) == 130);
-        assert(*nth(h, 11) == 140);
+        assert(*nth(h, 0) == 10);   assert(*rnth(h, 11) == 10);
+        assert(*nth(h, 1) == 20);   assert(*rnth(h, 10) == 20);
+        assert(*nth(h, 2) == 30);   assert(*rnth(h, 9) == 30);
+        assert(*nth(h, 3) == 40);   assert(*rnth(h, 8) == 40);
+        assert(*nth(h, 4) == 50);   assert(*rnth(h, 7) == 50);
+        assert(*nth(h, 5) == 60);   assert(*rnth(h, 6) == 60);
+        assert(*nth(h, 6) == 70);   assert(*rnth(h, 5) == 70);
+        assert(*nth(h, 7) == 80);   assert(*rnth(h, 4) == 80);
+        assert(*nth(h, 8) == 110);  assert(*rnth(h, 3) == 110);
+        assert(*nth(h, 9) == 120);  assert(*rnth(h, 2) == 120);
+        assert(*nth(h, 10) == 130); assert(*rnth(h, 1) == 130);
+        assert(*nth(h, 11) == 140); assert(*rnth(h, 0) == 140);
     }
 }
