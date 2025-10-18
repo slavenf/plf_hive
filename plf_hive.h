@@ -229,7 +229,6 @@ private:
 		group_pointer_type			next_group;			// Next group in the linked list of all groups. nullptr if no following group. 2nd in struct because it is so frequently used during iteration.
 		const aligned_pointer_type	elements;			// Element storage.
 		group_pointer_type			previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
-		// skipfield_type 				free_list_head;		// The index of the last erased element in the group. The last erased element will, in turn, contain the number of the index of the next erased element, and so on. If this is == maximum skipfield_type value then free_list is empty ie. no erasures have occurred in the group (or if they have, the erased locations have subsequently been reused via insert/emplace/assign).
 		plf::bitsetc<>				used_buckets;
 		const skipfield_type 		capacity;			// The element capacity of this particular group - can also be calculated from reinterpret_cast<aligned_pointer_type>(group->skipfield) - group->elements, however this space is effectively free due to struct padding and the sizeof(skipfield_type), and calculating it once is faster in benchmarking.
 		skipfield_type 				size; 				// The total number of active elements in group - changes with insert and erase commands - used to check for empty group in erase function, as an indication to remove the group. Also used in combination with capacity to check if group is full, which is used in the next/previous/advance/distance overloads, and range-erase.
@@ -241,7 +240,6 @@ private:
 			next_group(nullptr),
 			elements(pointer_cast<aligned_pointer_type>(std::allocator_traits<aligned_struct_allocator_type>::allocate(aligned_struct_allocator, get_aligned_block_capacity(elements_per_group), (previous == nullptr) ? 0 : previous->elements))),
 			previous_group(previous),
-			// free_list_head(std::numeric_limits<skipfield_type>::max()),
 			used_buckets(elements_per_group),
 			capacity(elements_per_group),
 			size(1),
@@ -258,7 +256,6 @@ private:
 		void reset(const skipfield_type increment, const group_pointer_type next, const group_pointer_type previous, const size_type group_num) noexcept
 		{
 			next_group = next;
-			// free_list_head = std::numeric_limits<skipfield_type>::max();
 			used_buckets.reset();
 			previous_group = previous;
 			size = increment;
