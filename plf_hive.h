@@ -230,7 +230,7 @@ private:
 		const aligned_pointer_type	elements;			// Element storage.
 		group_pointer_type			previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
 		// skipfield_type 				free_list_head;		// The index of the last erased element in the group. The last erased element will, in turn, contain the number of the index of the next erased element, and so on. If this is == maximum skipfield_type value then free_list is empty ie. no erasures have occurred in the group (or if they have, the erased locations have subsequently been reused via insert/emplace/assign).
-		plf::bitsetc<>				bitset;
+		plf::bitsetc<>				used_buckets;
 		const skipfield_type 		capacity;			// The element capacity of this particular group - can also be calculated from reinterpret_cast<aligned_pointer_type>(group->skipfield) - group->elements, however this space is effectively free due to struct padding and the sizeof(skipfield_type), and calculating it once is faster in benchmarking.
 		skipfield_type 				size; 				// The total number of active elements in group - changes with insert and erase commands - used to check for empty group in erase function, as an indication to remove the group. Also used in combination with capacity to check if group is full, which is used in the next/previous/advance/distance overloads, and range-erase.
 		group_pointer_type			erasures_list_next_group, erasures_list_previous_group; // The next and previous groups in the list of groups with erasures ie. with active erased-element free lists. nullptr if no next or previous group.
@@ -242,7 +242,7 @@ private:
 			elements(pointer_cast<aligned_pointer_type>(std::allocator_traits<aligned_struct_allocator_type>::allocate(aligned_struct_allocator, get_aligned_block_capacity(elements_per_group), (previous == nullptr) ? 0 : previous->elements))),
 			previous_group(previous),
 			// free_list_head(std::numeric_limits<skipfield_type>::max()),
-			bitset(elements_per_group),
+			used_buckets(elements_per_group),
 			capacity(elements_per_group),
 			size(1),
 			erasures_list_next_group(nullptr),
@@ -259,7 +259,7 @@ private:
 		{
 			next_group = next;
 			// free_list_head = std::numeric_limits<skipfield_type>::max();
-			bitset.reset();
+			used_buckets.reset();
 			previous_group = previous;
 			size = increment;
 			erasures_list_next_group = nullptr;
@@ -1031,7 +1031,7 @@ public:
 					);
 
 					// Mark the bucket as occupied
-					it.group_pointer->bitset.set(pos);
+					it.group_pointer->used_buckets.set(pos);
 
 					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
@@ -1040,7 +1040,7 @@ public:
 					++total_size;
 
 					std::cout << " - pos1: " << pos << std::endl;
-					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
+					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
 
 					return it;
 				}
@@ -1088,7 +1088,7 @@ public:
 					constexpr std::size_t pos = 0;
 
 					// Mark the bucket as occupied
-					it.group_pointer->bitset.set(pos);
+					it.group_pointer->used_buckets.set(pos);
 
 					// Update end_iterator and total_size
 					end_iterator.group_pointer->next_group = next_group;
@@ -1098,7 +1098,7 @@ public:
 					++total_size;
 
 					std::cout << " - pos2: " << pos << std::endl;
-					std::cout << " - bitset: " << it.group_pointer->bitset << std::endl;
+					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
 
 					return it;
 				}
@@ -1106,10 +1106,10 @@ public:
 			else // there are erased elements, reuse those memory locations
 			{
 				// Index of the first unoccupied bucket
-				const std::size_t pos = erasure_groups_head->bitset.first_zero();
+				const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
 
 				std::cout << " - pos3: " << pos << std::endl;
-				std::cout << " - bitset before: " << erasure_groups_head->bitset << std::endl;
+				std::cout << " - used_buckets before: " << erasure_groups_head->used_buckets << std::endl;
 
 				// Iterator to the unoccupied bucket
 				const iterator it
@@ -1123,9 +1123,9 @@ public:
 				construct_element(it.element_pointer, element);
 
 				// Mark the bucket as occupied
-				it.group_pointer->bitset.set(pos);
+				it.group_pointer->used_buckets.set(pos);
 
-				std::cout << " - bitset after:  " << erasure_groups_head->bitset << std::endl;
+				std::cout << " - used_buckets after:  " << erasure_groups_head->used_buckets << std::endl;
 
 				// Update skipblock
 				update_skipblock(it);
@@ -1160,7 +1160,7 @@ public:
 			constexpr std::size_t pos = 0;
 
 			// Mark the bucket as occupied
-			begin_iterator.group_pointer->bitset.set(pos);
+			begin_iterator.group_pointer->used_buckets.set(pos);
 
 			// Update end_iterator and total_size
 			++end_iterator.element_pointer;
@@ -1168,7 +1168,7 @@ public:
 			total_size = 1;
 
 			std::cout << " - pos4: " << pos << std::endl;
-			std::cout << " - bitset: " << begin_iterator.group_pointer->bitset << std::endl;
+			std::cout << " - used_buckets: " << begin_iterator.group_pointer->used_buckets << std::endl;
 
 			return begin_iterator;
 		}
@@ -2037,7 +2037,7 @@ public:
 		);
 
 		// Mark the bucket as unoccupied
-		it.group_pointer->bitset.reset(pos);
+		it.group_pointer->used_buckets.reset(pos);
 
 		--total_size;
 
