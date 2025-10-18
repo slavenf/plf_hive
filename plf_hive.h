@@ -1957,6 +1957,8 @@ private:
 		return erasure_groups_head == group || group->erasures_list_previous_group != nullptr;
 	}
 
+
+
 	void add_group_to_erasures_list(const group_pointer_type group) noexcept
 	{
 		group->erasures_list_next_group = erasure_groups_head;
@@ -1969,9 +1971,15 @@ private:
 		erasure_groups_head = group;
 	}
 
+
+
 	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) noexcept
 	{
-		if (group_to_remove != erasure_groups_head)
+		if (group_to_remove == erasure_groups_head)
+		{
+			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
+		}
+		else if (group_to_remove->erasures_list_previous_group != nullptr)
 		{
 			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
 
@@ -1979,10 +1987,6 @@ private:
 			{
 				group_to_remove->erasures_list_next_group->erasures_list_previous_group = group_to_remove->erasures_list_previous_group;
 			}
-		}
-		else
-		{
-			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
 
 		group_to_remove->erasures_list_next_group = nullptr;

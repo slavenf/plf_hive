@@ -569,6 +569,72 @@ int main()
         assert(*nth(h, 8) == 130);
     }
 
+    // Test erase only element in last group in chain
+    {
+        plf::hive<int> h(plf::hive_limits(4, 128));
+
+        std::cout << "Insert initial elements..." << std::endl;
+
+        auto it0 = h.insert(10);    (void)it0;
+        auto it1 = h.insert(20);    (void)it1;
+        auto it2 = h.insert(30);    (void)it2;
+        auto it3 = h.insert(40);    (void)it3;
+        auto it4 = h.insert(50);    (void)it4;
+        auto it5 = h.insert(60);    (void)it5;
+        auto it6 = h.insert(70);    (void)it6;
+        auto it7 = h.insert(80);    (void)it7;
+        auto it8 = h.insert(90);    (void)it8;
+
+        assert(h.size() == 9);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 20);
+        assert(*nth(h, 2) == 30);
+        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 4) == 50);
+        assert(*nth(h, 5) == 60);
+        assert(*nth(h, 6) == 70);
+        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 8) == 90);
+
+        std::cout << "Erase at position 8..." << std::endl;
+
+        h.erase(it8);
+
+        assert(h.size() == 8);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 20);
+        assert(*nth(h, 2) == 30);
+        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 4) == 50);
+        assert(*nth(h, 5) == 60);
+        assert(*nth(h, 6) == 70);
+        assert(*nth(h, 7) == 80);
+
+        std::cout << "Insert new elements..." << std::endl;
+
+        h.insert(110);
+        h.insert(120);
+        h.insert(130);
+        h.insert(140);
+
+        assert(h.size() == 12);
+        assert(h.capacity() == 16);
+        assert(*nth(h, 0) == 10);
+        assert(*nth(h, 1) == 20);
+        assert(*nth(h, 2) == 30);
+        assert(*nth(h, 3) == 40);
+        assert(*nth(h, 4) == 50);
+        assert(*nth(h, 5) == 60);
+        assert(*nth(h, 6) == 70);
+        assert(*nth(h, 7) == 80);
+        assert(*nth(h, 8) == 110);
+        assert(*nth(h, 9) == 120);
+        assert(*nth(h, 10) == 130);
+        assert(*nth(h, 11) == 140);
+    }
+
     // Test erase all elements in last group in chain
     {
         plf::hive<int> h(plf::hive_limits(4, 128));
