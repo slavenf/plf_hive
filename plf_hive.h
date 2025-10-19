@@ -1976,8 +1976,10 @@ private:
 		{
 			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
-		else if (group_to_remove->erasures_list_previous_group != nullptr)
+		else
 		{
+			assert(group_to_remove->erasures_list_previous_group != nullptr);
+
 			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
 
 			if (group_to_remove->erasures_list_next_group != nullptr)
@@ -2117,7 +2119,10 @@ public:
 			it.group_pointer->next_group->previous_group = nullptr; // Cut off this group from the chain
 			begin_iterator.group_pointer = it.group_pointer->next_group; // Make the next group the first group
 
-			remove_from_groups_with_erasures_list(it.group_pointer);
+			if (is_group_in_erasures_list(it.group_pointer))
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
 
 			total_capacity -= it.group_pointer->capacity;
 			deallocate_group(it.group_pointer);
@@ -2133,7 +2138,10 @@ public:
 			it.group_pointer->next_group->previous_group = it.group_pointer->previous_group;
 			const group_pointer_type return_group = it.group_pointer->previous_group->next_group = it.group_pointer->next_group; // close the chain, removing this group from it
 
-			remove_from_groups_with_erasures_list(it.group_pointer);
+			if (is_group_in_erasures_list(it.group_pointer))
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
 
 			if (it.group_pointer->next_group != end_iterator.group_pointer)
 			{
@@ -2150,7 +2158,10 @@ public:
 		}
 		else // this is a non-first group and the final group in the chain
 		{
-			remove_from_groups_with_erasures_list(it.group_pointer);
+			if (is_group_in_erasures_list(it.group_pointer))
+			{
+				remove_from_groups_with_erasures_list(it.group_pointer);
+			}
 
 			it.group_pointer->previous_group->next_group = nullptr;
 			end_iterator.group_pointer = it.group_pointer->previous_group; // end iterator needs to be changed as element supplied was the back element of the hive
