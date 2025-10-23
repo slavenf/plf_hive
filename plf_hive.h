@@ -1041,6 +1041,12 @@ public:
 					#if 1 // TODO: This is for debugging purposes only. Remove it when done.
 					std::cout << " - pos1: " << pos << std::endl;
 					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
+					std::cout << " - skipfield: ";
+					for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
+					{
+						std::cout << int(it.group_pointer->skipfield[i]) << " ";
+					}
+					std::cout << std::endl;
 					#endif
 
 					return it;
@@ -1101,6 +1107,12 @@ public:
 					#if 1 // TODO: This is for debugging purposes only. Remove it when done.
 					std::cout << " - pos2: " << pos << std::endl;
 					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
+					std::cout << " - skipfield: ";
+					for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
+					{
+						std::cout << int(it.group_pointer->skipfield[i]) << " ";
+					}
+					std::cout << std::endl;
 					#endif
 
 					return it;
@@ -1114,6 +1126,12 @@ public:
 				#if 1 // TODO: This is for debugging purposes only. Remove it when done.
 				std::cout << " - pos3: " << pos << std::endl;
 				std::cout << " - used_buckets before: " << erasure_groups_head->used_buckets << std::endl;
+				std::cout << " - skipfield before: ";
+				for (skipfield_type i = 0; i < erasure_groups_head->capacity; ++i)
+				{
+					std::cout << int(erasure_groups_head->skipfield[i]) << " ";
+				}
+				std::cout << std::endl;
 				#endif
 
 				// Iterator to the unoccupied bucket
@@ -1130,12 +1148,18 @@ public:
 				// Mark the bucket as occupied
 				it.group_pointer->used_buckets.set(pos);
 
-				#if 1 // TODO: This is for debugging purposes only. Remove it when done.
-				std::cout << " - used_buckets after:  " << erasure_groups_head->used_buckets << std::endl;
-				#endif
-
 				// Update skipblock
 				update_skipblock(it);
+
+				#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+				std::cout << " - used_buckets after:  " << it.group_pointer->used_buckets << std::endl;
+				std::cout << " - skipfield after: ";
+				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
+				{
+					std::cout << int(it.group_pointer->skipfield[i]) << " ";
+				}
+				std::cout << std::endl;
+				#endif
 
 				return it;
 			}
@@ -1177,6 +1201,12 @@ public:
 			#if 1 // TODO: This is for debugging purposes only. Remove it when done.
 			std::cout << " - pos4: " << pos << std::endl;
 			std::cout << " - used_buckets: " << begin_iterator.group_pointer->used_buckets << std::endl;
+			std::cout << " - skipfield: ";
+			for (skipfield_type i = 0; i < begin_iterator.group_pointer->capacity; ++i)
+			{
+				std::cout << int(begin_iterator.group_pointer->skipfield[i]) << " ";
+			}
+			std::cout << std::endl;
 			#endif
 
 			return begin_iterator;
