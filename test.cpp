@@ -115,6 +115,13 @@ int main()
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 4);
+        assert(std::distance(nth(h, 1), h.cend()) == 3);
+        assert(std::distance(nth(h, 2), h.cend()) == 2);
+        assert(std::distance(nth(h, 3), h.cend()) == 1);
+        #endif
+
         std::cout << "Erase at position 0..." << std::endl;
 
         h.erase(it0);
@@ -124,6 +131,12 @@ int main()
         assert(*nth(h, 0) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
+
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 3);
+        assert(std::distance(nth(h, 1), h.cend()) == 2);
+        assert(std::distance(nth(h, 2), h.cend()) == 1);
+        #endif
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -136,6 +149,13 @@ int main()
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 4);
+        assert(std::distance(nth(h, 1), h.cend()) == 3);
+        assert(std::distance(nth(h, 2), h.cend()) == 2);
+        assert(std::distance(nth(h, 3), h.cend()) == 1);
+        #endif
+
         std::cout << "Erase at position 1..." << std::endl;
 
         h.erase(it1);
@@ -145,6 +165,12 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
+
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 3);
+        assert(std::distance(nth(h, 1), h.cend()) == 2);
+        assert(std::distance(nth(h, 2), h.cend()) == 1);
+        #endif
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -157,6 +183,13 @@ int main()
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 4);
+        assert(std::distance(nth(h, 1), h.cend()) == 3);
+        assert(std::distance(nth(h, 2), h.cend()) == 2);
+        assert(std::distance(nth(h, 3), h.cend()) == 1);
+        #endif
+
         std::cout << "Erase at position 2..." << std::endl;
 
         h.erase(it2);
@@ -166,6 +199,12 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
+
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 3);
+        assert(std::distance(nth(h, 1), h.cend()) == 2);
+        assert(std::distance(nth(h, 2), h.cend()) == 1);
+        #endif
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -178,6 +217,13 @@ int main()
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
 
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 4);
+        assert(std::distance(nth(h, 1), h.cend()) == 3);
+        assert(std::distance(nth(h, 2), h.cend()) == 2);
+        assert(std::distance(nth(h, 3), h.cend()) == 1);
+        #endif
+
         std::cout << "Erase at position 3..." << std::endl;
 
         h.erase(it3);
@@ -187,6 +233,12 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 0) == 31);
+
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 3);
+        assert(std::distance(nth(h, 1), h.cend()) == 2);
+        assert(std::distance(nth(h, 2), h.cend()) == 1);
+        #endif
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -198,6 +250,13 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 41); assert(*rnth(h, 0) == 41);
+
+        #if 0 // TODO
+        assert(std::distance(nth(h, 0), h.cend()) == 4);
+        assert(std::distance(nth(h, 1), h.cend()) == 3);
+        assert(std::distance(nth(h, 2), h.cend()) == 2);
+        assert(std::distance(nth(h, 3), h.cend()) == 1);
+        #endif
     }
 
     // Test erase at positions 0, 1 and 2 in the same group
