@@ -86,6 +86,14 @@ int main()
             {
                 assert(*nth(h, j) == *nth(elements, j));
             }
+
+            #if 0 // TODO: Check hive_iterator::distance and hive_reverse_iterator::distance
+            for (int j = 0; j < int(h.size()); ++j)
+            {
+                assert(std::distance(nth(h, j), h.cend()) == int(h.size()) - j);
+                assert(std::distance(rnth(h, j), h.crend()) == int(h.size()) - j);
+            }
+            #endif
         }
     }
 
