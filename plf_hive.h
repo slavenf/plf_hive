@@ -1053,7 +1053,7 @@ public:
 				}
 
 				// end_iterator is at the end of block, we need new group
-				
+
 				group_pointer_type next_group;
 
 				if (unused_groups_head == nullptr) // ie. there are no unused groups, allocate new group
@@ -2028,7 +2028,9 @@ private:
 			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
 
-		group_to_remove->erasures_list_next_group = nullptr;
+		// Reset pointer to previous group in erasures list.
+		// Without this function is_group_in_erasures_list cannot work properly.
+		// There is no need to reset pointer to next group in erasures list because it is never checked.
 		group_to_remove->erasures_list_previous_group = nullptr;
 	}
 
