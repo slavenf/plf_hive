@@ -271,16 +271,16 @@ private:
 
 	// Hive member variables:
 
-	iterator 			end_iterator, begin_iterator;
+	iterator 				end_iterator, begin_iterator;
 	group_pointer_type	erasure_groups_head,	// Head of doubly-linked list of groups which have erased-element memory locations available for re-use
 								unused_groups_head;	// Head of singly-linked list of reserved groups retained by erase()/clear() or created by reserve()
-	size_type			total_size, total_capacity;
+	size_type				total_size, total_capacity;
 	skipfield_type 		min_block_capacity, max_block_capacity;
 
-	group_allocator_type 			group_allocator;
-	aligned_struct_allocator_type	aligned_struct_allocator;
-	skipfield_allocator_type 		skipfield_allocator;
-	tuple_allocator_type 			tuple_allocator;
+	group_allocator_type group_allocator;
+	aligned_struct_allocator_type aligned_struct_allocator;
+	skipfield_allocator_type skipfield_allocator;
+	tuple_allocator_type tuple_allocator;
 
 
 
