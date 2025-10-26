@@ -1051,72 +1051,72 @@ public:
 
 					return it;
 				}
-				else // end_iterator is at the end of block, we need new group
+
+				// end_iterator is at the end of block, we need new group
+				
+				group_pointer_type next_group;
+
+				if (unused_groups_head == nullptr) // ie. there are no unused groups, allocate new group
 				{
-					group_pointer_type next_group;
+					const skipfield_type new_group_size = static_cast<skipfield_type>(std::min(total_size, static_cast<size_type>(max_block_capacity)));
+					reset_group_numbers_if_necessary();
+					next_group = allocate_new_group(new_group_size, end_iterator.group_pointer);
 
-					if (unused_groups_head == nullptr) // ie. there are no unused groups, allocate new group
-					{
-						const skipfield_type new_group_size = static_cast<skipfield_type>(std::min(total_size, static_cast<size_type>(max_block_capacity)));
-						reset_group_numbers_if_necessary();
-						next_group = allocate_new_group(new_group_size, end_iterator.group_pointer);
-
-						#ifdef PLF_EXCEPTIONS_SUPPORT
-							if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
-							{
-								try
-								{
-									construct_element(next_group->elements, element);
-								}
-								catch (...)
-								{
-									deallocate_group(next_group);
-									throw;
-								}
-							}
-							else
-						#endif
+					#ifdef PLF_EXCEPTIONS_SUPPORT
+						if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
 						{
-							construct_element(next_group->elements, element);
+							try
+							{
+								construct_element(next_group->elements, element);
+							}
+							catch (...)
+							{
+								deallocate_group(next_group);
+								throw;
+							}
 						}
-
-						total_capacity += new_group_size;
-					}
-					else // there are unused groups, reuse those groups
-					{
-						construct_element(unused_groups_head->elements, element);
-						next_group = reuse_unused_group();
-					}
-
-					// Iterator to the inserted element
-					const iterator it(next_group, next_group->elements, next_group->skipfield);
-
-					// Index of the bucket where the element is inserted - it is always zero in this case
-					constexpr std::size_t pos = 0;
-
-					// Mark the bucket as occupied
-					it.group_pointer->used_buckets.set(pos);
-
-					// Update end_iterator and total_size
-					end_iterator.group_pointer->next_group = next_group;
-					end_iterator.group_pointer = next_group;
-					end_iterator.element_pointer = next_group->elements + 1;
-					end_iterator.skipfield_pointer = next_group->skipfield + 1;
-					++total_size;
-
-					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-					std::cout << " - pos2: " << pos << std::endl;
-					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
-					std::cout << " - skipfield: ";
-					for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
-					{
-						std::cout << int(it.group_pointer->skipfield[i]) << " ";
-					}
-					std::cout << std::endl;
+						else
 					#endif
+					{
+						construct_element(next_group->elements, element);
+					}
 
-					return it;
+					total_capacity += new_group_size;
 				}
+				else // there are unused groups, reuse those groups
+				{
+					construct_element(unused_groups_head->elements, element);
+					next_group = reuse_unused_group();
+				}
+
+				// Iterator to the inserted element
+				const iterator it(next_group, next_group->elements, next_group->skipfield);
+
+				// Index of the bucket where the element is inserted - it is always zero in this case
+				constexpr std::size_t pos = 0;
+
+				// Mark the bucket as occupied
+				it.group_pointer->used_buckets.set(pos);
+
+				// Update end_iterator and total_size
+				end_iterator.group_pointer->next_group = next_group;
+				end_iterator.group_pointer = next_group;
+				end_iterator.element_pointer = next_group->elements + 1;
+				end_iterator.skipfield_pointer = next_group->skipfield + 1;
+				++total_size;
+
+				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
+				std::cout << " - pos2: " << pos << std::endl;
+				std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
+				std::cout << " - skipfield: ";
+				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
+				{
+					std::cout << int(it.group_pointer->skipfield[i]) << " ";
+				}
+				std::cout << std::endl;
+				#endif
+
+				return it;
 			}
 			else // there are erased elements, reuse those memory locations
 			{
@@ -1173,7 +1173,7 @@ public:
 				{
 					try
 					{
-						construct_element(begin_iterator.element_pointer, element);
+						construct_element(end_iterator.element_pointer, element);
 					}
 					catch (...)
 					{
@@ -1184,7 +1184,7 @@ public:
 				else
 			#endif
 			{
-				construct_element(begin_iterator.element_pointer, element);
+				construct_element(end_iterator.element_pointer, element);
 			}
 
 			// Index of the bucket where the element is inserted - it is always zero in this case
