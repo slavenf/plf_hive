@@ -236,6 +236,7 @@ private:
 		size_type					group_number;		// Used for comparison (> < >= <= <=>) iterator operators (used by distance function and user).
 
 
+
 		group(aligned_struct_allocator_type &aligned_struct_allocator, const skipfield_type elements_per_group, const group_pointer_type previous):
 			next_group(nullptr),
 			elements(pointer_cast<aligned_pointer_type>(std::allocator_traits<aligned_struct_allocator_type>::allocate(aligned_struct_allocator, get_aligned_block_capacity(elements_per_group), (previous == nullptr) ? 0 : previous->elements))),
