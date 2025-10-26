@@ -52,7 +52,7 @@
 #include <compare> // std::strong_ordering
 #include <ranges>
 
-#include "../plf_bitsets/plf_bitsetc.h"
+#include "plf_bitsetc.h"
 
 
 

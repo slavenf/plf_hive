@@ -1,4 +1,4 @@
-// g++ -std=c++20 -Wall -Wextra -Wfatal-errors -DPLF_CONSTEXPR=constexpr test.cpp -o test
+// g++ -std=c++20 -Wall -Wextra -Wfatal-errors -DPLF_CONSTEXPR=constexpr -I ../plf_bitsets test.cpp -o test
 
 #include <cassert>
 #include <iostream>
