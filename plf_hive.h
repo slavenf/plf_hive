@@ -1017,21 +1017,21 @@ public:
 			{
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
-					// Iterator to the unoccupied bucket - it is always end_iterator in this case
-					const iterator it = end_iterator;
+					// Construct element at the unoccupied bucket - it is always end_iterator in this case
+					construct_element(end_iterator.element_pointer, element);
 
-					// Construct element at the unoccupied bucket
-					construct_element(it.element_pointer, element);
+					// Iterator to the inserted element
+					const iterator return_iterator = end_iterator;
 
 					// Index of the bucket where the element is inserted
 					const std::size_t pos = std::distance
 					(
-						it.group_pointer->elements,
-						it.element_pointer
+						return_iterator.group_pointer->elements,
+						return_iterator.element_pointer
 					);
 
 					// Mark the bucket as occupied
-					it.group_pointer->used_buckets.set(pos);
+					return_iterator.group_pointer->used_buckets.set(pos);
 
 					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
@@ -1041,16 +1041,16 @@ public:
 
 					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 					std::cout << " - pos1: " << pos << std::endl;
-					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
+					std::cout << " - used_buckets: " << return_iterator.group_pointer->used_buckets << std::endl;
 					std::cout << " - skipfield: ";
-					for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
+					for (skipfield_type i = 0; i < return_iterator.group_pointer->capacity; ++i)
 					{
-						std::cout << int(it.group_pointer->skipfield[i]) << " ";
+						std::cout << int(return_iterator.group_pointer->skipfield[i]) << " ";
 					}
 					std::cout << std::endl;
 					#endif
 
-					return it;
+					return return_iterator;
 				}
 
 				// end_iterator is at the end of block, we need new group
