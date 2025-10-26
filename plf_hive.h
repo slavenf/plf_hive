@@ -1006,7 +1006,7 @@ public:
 
 	iterator insert(const element_type &element) // Note: defining insert & and insert && as calls to emplace results in larger codegen in release mode (under GCC at least), and prevents more accurate is_nothrow tests
 	{
-		#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+		#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 		std::cout << "inserting element: " << element << std::endl;
 		#endif
 
@@ -1038,7 +1038,7 @@ public:
 					++(end_iterator.group_pointer->size);
 					++total_size;
 
-					#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 					std::cout << " - pos1: " << pos << std::endl;
 					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
 					std::cout << " - skipfield: ";
@@ -1104,7 +1104,7 @@ public:
 					end_iterator.skipfield_pointer = next_group->skipfield + 1;
 					++total_size;
 
-					#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 					std::cout << " - pos2: " << pos << std::endl;
 					std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
 					std::cout << " - skipfield: ";
@@ -1123,7 +1123,7 @@ public:
 				// Index of the first unoccupied bucket
 				const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
 
-				#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 				std::cout << " - pos3: " << pos << std::endl;
 				std::cout << " - used_buckets before: " << erasure_groups_head->used_buckets << std::endl;
 				std::cout << " - skipfield before: ";
@@ -1151,7 +1151,7 @@ public:
 				// Update skipblock
 				update_skipblock(it);
 
-				#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 				std::cout << " - used_buckets after:  " << it.group_pointer->used_buckets << std::endl;
 				std::cout << " - skipfield after: ";
 				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
@@ -1198,7 +1198,7 @@ public:
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
 
-			#if 1 // TODO: This is for debugging purposes only. Remove it when done.
+			#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 			std::cout << " - pos4: " << pos << std::endl;
 			std::cout << " - used_buckets: " << begin_iterator.group_pointer->used_buckets << std::endl;
 			std::cout << " - skipfield: ";
