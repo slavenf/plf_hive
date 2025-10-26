@@ -2014,20 +2014,18 @@ private:
 
 	void remove_from_groups_with_erasures_list(const group_pointer_type group_to_remove) noexcept
 	{
-		if (group_to_remove == erasure_groups_head)
+		if (group_to_remove != erasure_groups_head)
 		{
-			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
-		}
-		else
-		{
-			assert(group_to_remove->erasures_list_previous_group != nullptr);
-
 			group_to_remove->erasures_list_previous_group->erasures_list_next_group = group_to_remove->erasures_list_next_group;
 
 			if (group_to_remove->erasures_list_next_group != nullptr)
 			{
 				group_to_remove->erasures_list_next_group->erasures_list_previous_group = group_to_remove->erasures_list_previous_group;
 			}
+		}
+		else
+		{
+			erasure_groups_head = erasure_groups_head->erasures_list_next_group;
 		}
 
 		group_to_remove->erasures_list_next_group = nullptr;
