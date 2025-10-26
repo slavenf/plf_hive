@@ -2100,8 +2100,7 @@ public:
 
 			if (!(prev_skipfield | after_skipfield)) // no consecutive erased elements
 			{
-				// This is solo skipped node
-				*it.skipfield_pointer = 1;
+				*it.skipfield_pointer = 1; // solo skipped node
 
 				if (!is_group_in_erasures_list(it.group_pointer))
 				{
