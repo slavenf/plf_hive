@@ -951,8 +951,7 @@ private:
 		// If group is full
 		if (new_location.group_pointer->size == new_location.group_pointer->capacity)
 		{
-			// Remove this group from the list of groups with erasures
-			erasure_groups_head = erasure_groups_head->erasures_list_next_group; // No need to update previous group for new head, as this is never accessed if group == head
+			remove_from_groups_with_erasures_list(erasure_groups_head);
 		}
 		else
 		{
@@ -2006,7 +2005,7 @@ private:
 
 	bool is_group_in_erasures_list(const group_pointer_type group) noexcept
 	{
-		return erasure_groups_head == group || group->erasures_list_previous_group != nullptr;
+		return group->erasures_list_previous_group != nullptr;
 	}
 
 
@@ -2014,6 +2013,7 @@ private:
 	void add_group_to_erasures_list(const group_pointer_type group) noexcept
 	{
 		group->erasures_list_next_group = erasure_groups_head;
+		group->erasures_list_previous_group = group; // to allow iterator member functions to check whether a group contains erasures even if it's the erasure_groups_head
 
 		if (erasure_groups_head != nullptr)
 		{
@@ -4390,7 +4390,7 @@ public:
 			if (iterator1.group_pointer != iterator2.group_pointer) // if not in same group, process intermediate groups
 			{
 				// Process initial group:
-				if (iterator1.group_pointer->free_list_head == std::numeric_limits<skipfield_type>::max()) // If no prior erasures have occured in this group we can do simple addition
+				if (iterator1.group_pointer->erasures_list_previous_group == nullptr) // If no prior erasures have occured in this group we can do simple addition
 				{
 					distance += static_cast<difference_type>(pointer_cast<aligned_pointer_type>(iterator1.group_pointer->skipfield) - iterator1.element_pointer);
 				}
@@ -4422,7 +4422,7 @@ public:
 			}
 
 
-			if (iterator2.group_pointer->free_list_head == std::numeric_limits<skipfield_type>::max()) // ie. no erasures in this group, direct subtraction is possible
+			if (iterator2.group_pointer->erasures_list_previous_group == nullptr) // ie. no erasures in this group, direct subtraction is possible
 			{
 				distance += iterator2.skipfield_pointer - iterator1.skipfield_pointer;
 			}

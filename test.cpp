@@ -47,6 +47,24 @@ auto rnth(const Container& c, Size pos)
     #endif
 }
 
+template <typename Container>
+bool check_iterator_distances(const Container& c)
+{
+    for (int i = 0; i < int(c.size()); ++i)
+    {
+        if (std::distance(nth(c, i), c.cend()) != int(c.size()) - i)
+        {
+            return false;
+        }
+
+        if (std::distance(rnth(c, i), c.crend()) != int(c.size()) - i)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 int main()
 {
     // Test insert into newly created container
@@ -87,13 +105,7 @@ int main()
                 assert(*nth(h, j) == *nth(elements, j));
             }
 
-            #if 0 // TODO: Check hive_iterator::distance and hive_reverse_iterator::distance
-            for (int j = 0; j < int(h.size()); ++j)
-            {
-                assert(std::distance(nth(h, j), h.cend()) == int(h.size()) - j);
-                assert(std::distance(rnth(h, j), h.crend()) == int(h.size()) - j);
-            }
-            #endif
+            assert(check_iterator_distances(h));
         }
     }
 
@@ -114,13 +126,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 4);
-        assert(std::distance(nth(h, 1), h.cend()) == 3);
-        assert(std::distance(nth(h, 2), h.cend()) == 2);
-        assert(std::distance(nth(h, 3), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 0..." << std::endl;
 
@@ -131,12 +137,7 @@ int main()
         assert(*nth(h, 0) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 3);
-        assert(std::distance(nth(h, 1), h.cend()) == 2);
-        assert(std::distance(nth(h, 2), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -148,13 +149,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 4);
-        assert(std::distance(nth(h, 1), h.cend()) == 3);
-        assert(std::distance(nth(h, 2), h.cend()) == 2);
-        assert(std::distance(nth(h, 3), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 1..." << std::endl;
 
@@ -165,12 +160,7 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 3);
-        assert(std::distance(nth(h, 1), h.cend()) == 2);
-        assert(std::distance(nth(h, 2), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -182,13 +172,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 4);
-        assert(std::distance(nth(h, 1), h.cend()) == 3);
-        assert(std::distance(nth(h, 2), h.cend()) == 2);
-        assert(std::distance(nth(h, 3), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 2..." << std::endl;
 
@@ -199,12 +183,7 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
         assert(*nth(h, 2) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 3);
-        assert(std::distance(nth(h, 1), h.cend()) == 2);
-        assert(std::distance(nth(h, 2), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -216,13 +195,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 4);
-        assert(std::distance(nth(h, 1), h.cend()) == 3);
-        assert(std::distance(nth(h, 2), h.cend()) == 2);
-        assert(std::distance(nth(h, 3), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 3..." << std::endl;
 
@@ -233,12 +206,7 @@ int main()
         assert(*nth(h, 0) == 11); assert(*rnth(h, 2) == 11);
         assert(*nth(h, 1) == 21); assert(*rnth(h, 1) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 0) == 31);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 3);
-        assert(std::distance(nth(h, 1), h.cend()) == 2);
-        assert(std::distance(nth(h, 2), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert one element..." << std::endl;
 
@@ -250,13 +218,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 41); assert(*rnth(h, 0) == 41);
-
-        #if 0 // TODO
-        assert(std::distance(nth(h, 0), h.cend()) == 4);
-        assert(std::distance(nth(h, 1), h.cend()) == 3);
-        assert(std::distance(nth(h, 2), h.cend()) == 2);
-        assert(std::distance(nth(h, 3), h.cend()) == 1);
-        #endif
+        assert(check_iterator_distances(h));
     }
 
     // Test erase at positions 0, 1 and 2 in the same group
@@ -276,6 +238,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 0, 1 and 2..." << std::endl;
 
@@ -299,6 +262,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase at positions 2, 1 and 0 in the same group
@@ -318,6 +282,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 2, 1 and 0..." << std::endl;
 
@@ -341,6 +306,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase at positions 0, 2 and 1 in the same group
@@ -360,6 +326,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 0, 2 and 1..." << std::endl;
 
@@ -383,6 +350,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase at positions 2, 0 and 1 in the same group
@@ -402,6 +370,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 2, 0 and 1..." << std::endl;
 
@@ -425,6 +394,7 @@ int main()
         assert(*nth(h, 1) == 21); assert(*rnth(h, 2) == 21);
         assert(*nth(h, 2) == 31); assert(*rnth(h, 1) == 31);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase at two positions in different groups
@@ -456,6 +426,7 @@ int main()
         assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 1 and 5..." << std::endl;
 
@@ -472,6 +443,7 @@ int main()
         assert(*nth(h, 5) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 6) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 7) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase two elements..." << std::endl;
 
@@ -490,6 +462,7 @@ int main()
         assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase all elements in only group in chain
@@ -509,6 +482,7 @@ int main()
         assert(*nth(h, 1) == 20); assert(*rnth(h, 2) == 20);
         assert(*nth(h, 2) == 30); assert(*rnth(h, 1) == 30);
         assert(*nth(h, 3) == 40); assert(*rnth(h, 0) == 40);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 0, 1, 2 and 3..." << std::endl;
 
@@ -533,6 +507,7 @@ int main()
         assert(*nth(h, 1) == 60); assert(*rnth(h, 2) == 60);
         assert(*nth(h, 2) == 70); assert(*rnth(h, 1) == 70);
         assert(*nth(h, 3) == 80); assert(*rnth(h, 0) == 80);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase all elements in first group in chain
@@ -564,6 +539,7 @@ int main()
         assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 0, 1, 2 and 3..." << std::endl;
 
@@ -580,6 +556,7 @@ int main()
         assert(*nth(h, 3) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 4) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 5) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -598,6 +575,7 @@ int main()
         assert(*nth(h, 6) == 110); assert(*rnth(h, 2) == 110);
         assert(*nth(h, 7) == 120); assert(*rnth(h, 1) == 120);
         assert(*nth(h, 8) == 130); assert(*rnth(h, 0) == 130);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase all elements in middle group in chain
@@ -629,6 +607,7 @@ int main()
         assert(*nth(h, 7) == 80);  assert(*rnth(h, 2) == 80);
         assert(*nth(h, 8) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 9) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 4, 5, 6 and 7..." << std::endl;
 
@@ -645,6 +624,7 @@ int main()
         assert(*nth(h, 3) == 40);  assert(*rnth(h, 2) == 40);
         assert(*nth(h, 4) == 90);  assert(*rnth(h, 1) == 90);
         assert(*nth(h, 5) == 100); assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -663,6 +643,7 @@ int main()
         assert(*nth(h, 6) == 110); assert(*rnth(h, 2) == 110);
         assert(*nth(h, 7) == 120); assert(*rnth(h, 1) == 120);
         assert(*nth(h, 8) == 130); assert(*rnth(h, 0) == 130);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase only element in last group in chain
@@ -692,6 +673,7 @@ int main()
         assert(*nth(h, 6) == 70);   assert(*rnth(h, 2) == 70);
         assert(*nth(h, 7) == 80);   assert(*rnth(h, 1) == 80);
         assert(*nth(h, 8) == 90);   assert(*rnth(h, 0) == 90);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 8..." << std::endl;
 
@@ -707,6 +689,7 @@ int main()
         assert(*nth(h, 5) == 60);   assert(*rnth(h, 2) == 60);
         assert(*nth(h, 6) == 70);   assert(*rnth(h, 1) == 70);
         assert(*nth(h, 7) == 80);   assert(*rnth(h, 0) == 80);
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -729,6 +712,7 @@ int main()
         assert(*nth(h, 9) == 120);  assert(*rnth(h, 2) == 120);
         assert(*nth(h, 10) == 130); assert(*rnth(h, 1) == 130);
         assert(*nth(h, 11) == 140); assert(*rnth(h, 0) == 140);
+        assert(check_iterator_distances(h));
     }
 
     // Test erase all elements in last group in chain
@@ -760,6 +744,7 @@ int main()
         assert(*nth(h, 7) == 80);   assert(*rnth(h, 2) == 80);
         assert(*nth(h, 8) == 90);   assert(*rnth(h, 1) == 90);
         assert(*nth(h, 9) == 100);  assert(*rnth(h, 0) == 100);
+        assert(check_iterator_distances(h));
 
         std::cout << "Erase at position 8 and 9..." << std::endl;
 
@@ -776,6 +761,7 @@ int main()
         assert(*nth(h, 5) == 60);   assert(*rnth(h, 2) == 60);
         assert(*nth(h, 6) == 70);   assert(*rnth(h, 1) == 70);
         assert(*nth(h, 7) == 80);   assert(*rnth(h, 0) == 80);
+        assert(check_iterator_distances(h));
 
         std::cout << "Insert new elements..." << std::endl;
 
@@ -798,5 +784,6 @@ int main()
         assert(*nth(h, 9) == 120);  assert(*rnth(h, 2) == 120);
         assert(*nth(h, 10) == 130); assert(*rnth(h, 1) == 130);
         assert(*nth(h, 11) == 140); assert(*rnth(h, 0) == 140);
+        assert(check_iterator_distances(h));
     }
 }
