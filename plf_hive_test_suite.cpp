@@ -382,7 +382,6 @@ int main()
 
 			total = 0;
 
-			#if 0
 			for(hive<int *>::reverse_iterator the_iterator = p_hive.rbegin(); the_iterator != p_hive.rend(); ++the_iterator)
 			{
 				hive<int *>::iterator it = the_iterator.base();
@@ -392,9 +391,6 @@ int main()
 
 			failpass("Full erase reverse iteration test", total == 200);
 			failpass("Post-erase size test", p_hive.size() == 0);
-			#else
-			p_hive.clear(); // TODO: REMOVE THIS. ADDED BY SLAVEN.
-			#endif
 
 			for (unsigned int temp = 0; temp != 200; ++temp)
 			{
