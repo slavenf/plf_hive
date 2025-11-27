@@ -3063,7 +3063,7 @@ public:
 		return *this;
 	}
 
-	#if 0
+
 
 	hive & operator = (const std::initializer_list<element_type> &element_list)
 	{
@@ -3071,7 +3071,7 @@ public:
 		return *this;
 	}
 
-	#endif
+
 
 	void shrink_to_fit()
 	{
