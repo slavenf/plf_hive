@@ -439,7 +439,6 @@ int main()
 
 			p_hive2.insert(&ten);
 
-			#if 0
 			p_hive2.swap(p_hive3);
 
 			failpass("Swap test", p_hive2.size() == p_hive3.size() - 1);
@@ -449,7 +448,6 @@ int main()
 			failpass("Swap test 2", p_hive3.size() == p_hive2.size() - 1);
 
 			failpass("max_size() test", p_hive2.max_size() > p_hive2.size());
-			#endif
 		}
 
 		#if 0
