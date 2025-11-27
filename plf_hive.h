@@ -1802,7 +1802,7 @@ private:
 		total_size += size;
 	}
 
-	#if 0
+
 
 	template <class iterator_type>
 	void range_fill_skipblock(iterator_type &it, const aligned_pointer_type location, const skipfield_pointer_type skipfield_pointer, const skipfield_type size)
@@ -1856,7 +1856,7 @@ private:
 		total_size += size;
 	}
 
-	#endif
+
 
 	template <class iterator_type>
 	void range_fill_unused_groups(size_type size, iterator_type it, size_type group_number, group_pointer_type previous_group, const group_pointer_type current_group)
@@ -1905,8 +1905,11 @@ private:
 
 		while(erasure_groups_head != nullptr)
 		{
-			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head;
-			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + erasure_groups_head->free_list_head;
+			// Index of the first unoccupied bucket
+			const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
+
+			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;//erasure_groups_head->free_list_head;
+			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + pos;//erasure_groups_head->free_list_head;
 			const skipfield_type skipblock_size = *skipfield_pointer;
 
 			if (erasure_groups_head == begin_iterator.group_pointer && element_pointer < begin_iterator.element_pointer)
@@ -1917,36 +1920,40 @@ private:
 
 			if (skipblock_size <= size)
 			{
-				erasure_groups_head->free_list_head = *pointer_cast<skipfield_pointer_type>(element_pointer);
+				assert(!"THIS IS NOT FIXED YET");
+
+				// erasure_groups_head->free_list_head = *pointer_cast<skipfield_pointer_type>(element_pointer);
 				range_fill_skipblock(it, element_pointer, skipfield_pointer, skipblock_size);
 				size -= skipblock_size;
 
-				if (erasure_groups_head->free_list_head != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head, std::numeric_limits<skipfield_type>::max());
-				}
-				else
-				{
-					erasure_groups_head = erasure_groups_head->erasures_list_next_group;
-				}
+				// if (erasure_groups_head->free_list_head != std::numeric_limits<skipfield_type>::max())
+				// {
+				// 	edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + pos, std::numeric_limits<skipfield_type>::max());
+				// }
+				// else
+				// {
+				// 	erasure_groups_head = erasure_groups_head->erasures_list_next_group;
+				// }
 
 				if (size == 0) return;
 			}
 			else
 			{
-				const skipfield_type prev_index = *pointer_cast<skipfield_pointer_type>(element_pointer);
+				assert(!"THIS IS NOT FIXED YET");
+
+				// const skipfield_type prev_index = *pointer_cast<skipfield_pointer_type>(element_pointer);
 				range_fill_skipblock(it, element_pointer, skipfield_pointer, static_cast<skipfield_type>(size));
 				const skipfield_type new_skipblock_size = static_cast<skipfield_type>(skipblock_size - size);
 
 				*(skipfield_pointer + size) = new_skipblock_size;
 				*(skipfield_pointer + skipblock_size - 1) = new_skipblock_size;
-				erasure_groups_head->free_list_head = static_cast<skipfield_type>(erasure_groups_head->free_list_head + size);
-				edit_free_list_head(element_pointer + size, prev_index);
+				// erasure_groups_head->free_list_head = static_cast<skipfield_type>(erasure_groups_head->free_list_head + size);
+				// edit_free_list_head(element_pointer + size, prev_index);
 
-				if (prev_index != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + prev_index, erasure_groups_head->free_list_head);
-				}
+				// if (prev_index != std::numeric_limits<skipfield_type>::max())
+				// {
+				// 	edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + prev_index, erasure_groups_head->free_list_head);
+				// }
 
 				return;
 			}

@@ -252,7 +252,6 @@ int main()
 			}
 
 
-			#if 0
 			hive<int *>::const_iterator plus_two_hundred_c = plus_two_hundred;
 			hive<int *> hive_copy(plus_twenty, plus_two_hundred_c);
 
@@ -446,10 +445,9 @@ int main()
 			failpass("Swap test 2", p_hive3.size() == p_hive2.size() - 1);
 
 			failpass("max_size() test", p_hive2.max_size() > p_hive2.size());
-			#endif
 		}
 
-		#if 0
+
 		{
 			title2("Iterator comparison tests");
 
@@ -487,7 +485,7 @@ int main()
 			failpass("Iterator <=> test 3", (it1 <=> it2) == std::strong_ordering::equal);
 		}
 
-
+		#if 0
 		{
 			title2("Insert and Erase tests");
 
