@@ -533,7 +533,7 @@ public:
 		hive(fill_number, element, block_capacity_default_limits(), alloc)
 	{}
 
-	#if 0
+
 
 	// Default-value fill constructors:
 
@@ -547,7 +547,7 @@ public:
 		hive(fill_number, element_type(), block_capacity_default_limits(), alloc)
 	{}
 
-	#endif
+
 
 	// Range constructors:
 
