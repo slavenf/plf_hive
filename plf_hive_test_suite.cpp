@@ -250,7 +250,7 @@ int main()
 				failpass("Positive/negative distance overload fuzz-test", true);
 			}
 
-			#if 0
+
 			hive<int *>::const_iterator plus_two_hundred_c = plus_two_hundred;
 			hive<int *> hive_copy(plus_twenty, plus_two_hundred_c);
 
@@ -277,6 +277,7 @@ int main()
 			std::advance(prev_iterator, 5);
 			failpass("Iterator/Const iterator equality operator test 2", prev_iterator == next_iterator);
 
+			#if 0
 			hive<int *> p_hive2;
 			p_hive2 = p_hive;
 			hive<int *> p_hive3(p_hive);

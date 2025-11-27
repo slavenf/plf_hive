@@ -547,7 +547,7 @@ public:
 		hive(fill_number, element_type(), block_capacity_default_limits(), alloc)
 	{}
 
-
+	#endif
 
 	// Range constructors:
 
@@ -576,7 +576,7 @@ public:
 		hive(first, last, block_capacity_default_limits(), alloc)
 	{}
 
-
+	#if 0
 
 	// Initializer-list constructors:
 
@@ -968,7 +968,7 @@ private:
 		}
 	}
 
-	#if 0
+
 
 	void reset() noexcept
 	{
@@ -976,7 +976,7 @@ private:
 		blank();
 	}
 
-	#endif
+
 
 	void update_subsequent_group_numbers(size_type current_group_number, group_pointer_type update_group) noexcept
 	{
@@ -1735,7 +1735,7 @@ public:
 		fill_unused_groups(size, element, end_iterator.group_pointer->group_number + 1u, end_iterator.group_pointer, unused_groups_head);
 	}
 
-
+	#endif
 
 private:
 
@@ -1787,7 +1787,7 @@ private:
 		total_size += size;
 	}
 
-
+	#if 0
 
 	template <class iterator_type>
 	void range_fill_skipblock(iterator_type &it, const aligned_pointer_type location, const skipfield_pointer_type skipfield_pointer, const skipfield_type size)
@@ -1841,7 +1841,7 @@ private:
 		total_size += size;
 	}
 
-
+	#endif
 
 	template <class iterator_type>
 	void range_fill_unused_groups(size_type size, iterator_type it, size_type group_number, group_pointer_type previous_group, const group_pointer_type current_group)
@@ -1864,7 +1864,7 @@ private:
 		range_fill(it, static_cast<skipfield_type>(size));
 	}
 
-
+	#if 0
 
 	template <class iterator_type>
 	void range_insert (iterator_type it, size_type size) // this is near-identical to the fill insert, with the only alteration being incrementing an iterator for construction, rather than using a const element. And the fill etc function calls are changed to range_fill to match this pattern. See fill insert for code explanations
@@ -2588,7 +2588,7 @@ public:
 		return iterator(iterator2.group_pointer, iterator2.element_pointer, iterator2.skipfield_pointer);
 	}
 
-
+	#endif
 
 private:
 
@@ -2647,7 +2647,7 @@ private:
 
 public:
 
-
+	#if 0
 	// Fill assign:
 
 	void assign(size_type size, const element_type &element)
@@ -2695,7 +2695,7 @@ public:
 		}
 	}
 
-
+	#endif
 
 private:
 
@@ -2759,7 +2759,7 @@ public:
 		range_assign(first, static_cast<size_type>(std::distance(first, last)));
 	}
 
-
+	#if 0
 
 	// Range assign, move_iterator overload:
 
