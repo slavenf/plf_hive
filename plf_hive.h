@@ -418,7 +418,7 @@ public:
 		hive(block_limits, allocator_type())
 	{}
 
-	#if 0
+
 
 	// Copy constructors:
 
@@ -445,7 +445,7 @@ public:
 		hive(source, std::allocator_traits<allocator_type>::select_on_container_copy_construction(source))
 	{}
 
-
+	#if 0
 
 	// Move constructors:
 
@@ -2964,7 +2964,7 @@ public:
 		total_size = 0;
 	}
 
-	#if 0
+
 
 	hive & operator = (const hive &source)
 	{
@@ -2992,7 +2992,7 @@ public:
 		return *this;
 	}
 
-
+	#if 0
 
 private:
 
@@ -3379,14 +3379,14 @@ public:
 		return get_it<true>(const_cast<pointer>(element_pointer));
 	}
 
-
+	#endif
 
 	allocator_type get_allocator() const noexcept
 	{
 		return static_cast<allocator_type>(*this);
 	}
 
-
+	#if 0
 
 private:
 

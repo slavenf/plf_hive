@@ -277,7 +277,6 @@ int main()
 			std::advance(prev_iterator, 5);
 			failpass("Iterator/Const iterator equality operator test 2", prev_iterator == next_iterator);
 
-			#if 0
 			hive<int *> p_hive2;
 			p_hive2 = p_hive;
 			hive<int *> p_hive3(p_hive);
@@ -369,6 +368,7 @@ int main()
 			failpass("Partial erase iteration test", total == 200);
 			failpass("Post-erase size test", p_hive.size() == 200);
 
+			#if 0
 			{
 				hive<int> trim_hive(2000, 10, {200, 200});
 				trim_hive.reserve(4000);
