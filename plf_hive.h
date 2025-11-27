@@ -576,7 +576,7 @@ public:
 		hive(first, last, block_capacity_default_limits(), alloc)
 	{}
 
-	#if 0
+
 
 	// Initializer-list constructors:
 
@@ -603,7 +603,7 @@ public:
 		hive(element_list, block_capacity_default_limits(), alloc)
 	{}
 
-
+	#if 0
 
 	// Ranges v3 constructors:
 
