@@ -368,7 +368,6 @@ int main()
 			failpass("Partial erase iteration test", total == 200);
 			failpass("Post-erase size test", p_hive.size() == 200);
 
-			#if 0
 			{
 				hive<int> trim_hive(2000, 10, {200, 200});
 				trim_hive.reserve(4000);
@@ -376,6 +375,7 @@ int main()
 				failpass("trim_capacity(n) test", trim_hive.capacity() == 3000);
 			}
 
+			#if 0
 			const unsigned int temp_capacity = static_cast<unsigned int>(p_hive.capacity());
 			p_hive.shrink_to_fit();
 			failpass("Shrink_to_fit test", p_hive.capacity() < temp_capacity);

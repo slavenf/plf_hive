@@ -3088,7 +3088,7 @@ public:
 		consolidate(min_block_capacity, max_block_capacity);
 	}
 
-
+	#endif
 
 	void trim_capacity() noexcept
 	{
@@ -3178,7 +3178,7 @@ public:
 		total_capacity -= capacity_difference - number_of_elements_to_remove;
 	}
 
-	#endif
+
 
 	void reserve(size_type new_capacity)
 	{
