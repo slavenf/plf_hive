@@ -446,7 +446,7 @@ int main()
 			failpass("max_size() test", p_hive2.max_size() > p_hive2.size());
 		}
 
-		#if 0
+
 		{
 			title2("Iterator comparison tests");
 
@@ -484,7 +484,7 @@ int main()
 			failpass("Iterator <=> test 3", (it1 <=> it2) == std::strong_ordering::equal);
 		}
 
-
+		#if 0
 		{
 			title2("Insert and Erase tests");
 
