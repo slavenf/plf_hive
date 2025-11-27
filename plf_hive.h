@@ -445,7 +445,7 @@ public:
 		hive(source, std::allocator_traits<allocator_type>::select_on_container_copy_construction(source))
 	{}
 
-	#if 0
+
 
 	// Move constructors:
 
@@ -501,7 +501,7 @@ public:
 		source.blank();
 	}
 
-	#endif
+
 
 	// Fill constructors:
 
@@ -2992,7 +2992,7 @@ public:
 		return *this;
 	}
 
-	#if 0
+
 
 private:
 
@@ -3063,7 +3063,7 @@ public:
 		return *this;
 	}
 
-
+	#if 0
 
 	hive & operator = (const std::initializer_list<element_type> &element_list)
 	{

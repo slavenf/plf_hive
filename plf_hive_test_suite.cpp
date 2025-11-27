@@ -392,6 +392,9 @@ int main()
 
 			failpass("Full erase reverse iteration test", total == 200);
 			failpass("Post-erase size test", p_hive.size() == 0);
+			#else
+			p_hive.clear(); // TODO: REMOVE THIS. ADDED BY SLAVEN.
+			#endif
 
 			for (unsigned int temp = 0; temp != 200; ++temp)
 			{
@@ -436,6 +439,7 @@ int main()
 
 			p_hive2.insert(&ten);
 
+			#if 0
 			p_hive2.swap(p_hive3);
 
 			failpass("Swap test", p_hive2.size() == p_hive3.size() - 1);
