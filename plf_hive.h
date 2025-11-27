@@ -501,7 +501,7 @@ public:
 		source.blank();
 	}
 
-
+	#endif
 
 	// Fill constructors:
 
@@ -533,7 +533,7 @@ public:
 		hive(fill_number, element, block_capacity_default_limits(), alloc)
 	{}
 
-
+	#if 0
 
 	// Default-value fill constructors:
 
@@ -1476,7 +1476,7 @@ private:
 		#endif
 	}
 
-
+	#endif
 
 	void fill(const element_type &element, const skipfield_type size)
 	{
@@ -1527,7 +1527,7 @@ private:
 		total_size += size;
 	}
 
-
+	#if 0
 
 	// For catch blocks in range_fill_skipblock and fill_skipblock
 	void recover_from_partial_skipblock_fill(const aligned_pointer_type location, const aligned_pointer_type current_location, const skipfield_pointer_type skipfield_pointer, const skipfield_type prev_free_list_node)
@@ -1607,7 +1607,7 @@ private:
 		total_size += size;
 	}
 
-
+	#endif
 
 	void fill_unused_groups(size_type size, const element_type &element, size_type group_number, group_pointer_type previous_group, const group_pointer_type current_group)
 	{
@@ -1629,7 +1629,7 @@ private:
 		fill(element, static_cast<skipfield_type>(size));
 	}
 
-
+	#if 0
 
 public:
 
@@ -2787,14 +2787,14 @@ public:
 		range_assign(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-
+	#endif
 
 	[[nodiscard]] bool empty() const noexcept
 	{
 		return total_size == 0;
 	}
 
-	#endif
+
 
 	size_type size() const noexcept
 	{
@@ -2937,7 +2937,7 @@ public:
 		return hive_limits(3, std::min(static_cast<size_t>(std::numeric_limits<skipfield_type>::max()), max_size_static()));
 	}
 
-	#if 0
+
 
 	void clear() noexcept
 	{
@@ -2964,7 +2964,7 @@ public:
 		total_size = 0;
 	}
 
-
+	#if 0
 
 	hive & operator = (const hive &source)
 	{
@@ -3178,7 +3178,7 @@ public:
 		total_capacity -= capacity_difference - number_of_elements_to_remove;
 	}
 
-
+	#endif
 
 	void reserve(size_type new_capacity)
 	{
@@ -3330,7 +3330,7 @@ public:
 		unused_groups_head = first_unused_group;
 	}
 
-
+	#if 0
 
 private:
 
