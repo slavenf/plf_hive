@@ -2815,7 +2815,7 @@ public:
 		return total_capacity;
 	}
 
-	#if 0
+
 
 private:
 
@@ -2842,7 +2842,7 @@ private:
 
 public:
 
-
+	#if 0
 	void reshape(const plf::hive_limits block_limits)
 	{
 		check_capacities_conformance(block_limits);
@@ -3071,7 +3071,7 @@ public:
 		return *this;
 	}
 
-
+	#endif
 
 	void shrink_to_fit()
 	{
@@ -3088,7 +3088,7 @@ public:
 		consolidate(min_block_capacity, max_block_capacity);
 	}
 
-	#endif
+
 
 	void trim_capacity() noexcept
 	{

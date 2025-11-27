@@ -375,7 +375,6 @@ int main()
 				failpass("trim_capacity(n) test", trim_hive.capacity() == 3000);
 			}
 
-			#if 0
 			const unsigned int temp_capacity = static_cast<unsigned int>(p_hive.capacity());
 			p_hive.shrink_to_fit();
 			failpass("Shrink_to_fit test", p_hive.capacity() < temp_capacity);
@@ -383,6 +382,7 @@ int main()
 
 			total = 0;
 
+			#if 0
 			for(hive<int *>::reverse_iterator the_iterator = p_hive.rbegin(); the_iterator != p_hive.rend(); ++the_iterator)
 			{
 				hive<int *>::iterator it = the_iterator.base();
