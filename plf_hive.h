@@ -603,7 +603,7 @@ public:
 		hive(element_list, block_capacity_default_limits(), alloc)
 	{}
 
-	#if 0
+
 
 	// Ranges v3 constructors:
 
@@ -634,7 +634,7 @@ public:
 		hive(plf::ranges::from_range, std::move(rg), block_capacity_default_limits(), alloc)
 	{}
 
-	#endif
+
 
 	// Everything else:
 
