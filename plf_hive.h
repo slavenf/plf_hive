@@ -3010,7 +3010,7 @@ private:
 
 public:
 
-	#if 0
+
 	void reshape(const plf::hive_limits block_limits)
 	{
 		check_capacities_conformance(block_limits);
@@ -3098,7 +3098,7 @@ public:
 		return hive_limits(static_cast<size_t>(min_block_capacity), static_cast<size_t>(max_block_capacity));
 	}
 
-	#endif
+
 
 	static constexpr hive_limits block_capacity_hard_limits() noexcept
 	{

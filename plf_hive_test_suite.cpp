@@ -485,7 +485,7 @@ int main()
 			failpass("Iterator <=> test 3", (it1 <=> it2) == std::strong_ordering::equal);
 		}
 
-		#if 0
+
 		{
 			title2("Insert and Erase tests");
 
@@ -539,6 +539,7 @@ int main()
 			i_hive.trim_capacity();
 			i_hive.reshape(plf::hive_limits(100, i_hive.block_capacity_limits().max));
 
+			#if 0
 			i_hive.insert(30000, 1); // fill-insert 30000 elements
 
 			failpass("Size after reinitialize + fill-insert test", i_hive.size() == 30000);
@@ -768,9 +769,10 @@ int main()
 			}
 
 			failpass("Multiple sequential small insert/erase commands test", count == i_hive.size());
+			#endif
 		}
 
-
+		#if 0
 		{
 			title2("Range-erase tests");
 
