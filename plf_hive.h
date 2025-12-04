@@ -4339,7 +4339,7 @@ public:
 				{
 					const difference_type distance_from_end = pointer_cast<aligned_pointer_type>(group_pointer->skipfield) - element_pointer;
 
-					if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+					if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 					{
 						if (distance < distance_from_end)
 						{
@@ -4420,7 +4420,7 @@ public:
 
 
 				// Final group (if not already reached):
-				if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+				if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
 					element_pointer = to_aligned_pointer(group_pointer->elements) + distance;
 					skipfield_pointer = group_pointer->skipfield + distance;
@@ -4446,7 +4446,7 @@ public:
 				// Special case for initial element pointer and initial group (we don't know how far into the group the element pointer is)
 				if (element_pointer != pointer_cast<aligned_pointer_type>(group_pointer->skipfield)) // not currently at the back of a block
 				{
-					if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+					if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 					{
 						const difference_type distance_from_beginning = static_cast<difference_type>(element_pointer - to_aligned_pointer(group_pointer->elements));
 
@@ -4515,7 +4515,7 @@ public:
 					element_pointer = to_aligned_pointer(group_pointer->elements) + *(group_pointer->skipfield);
 					skipfield_pointer = group_pointer->skipfield + *(group_pointer->skipfield);
 				}
-				else if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+				else if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
 					element_pointer = pointer_cast<aligned_pointer_type>(group_pointer->skipfield) - distance;
 					skipfield_pointer = (group_pointer->skipfield + group_pointer->size) - distance;
@@ -4920,7 +4920,7 @@ public:
 			{
 				if (group_pointer->previous_group == nullptr && element_pointer == to_aligned_pointer(group_pointer->elements) - 1) return; // Check if we're already at rend()
 
-				if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+				if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
 					const difference_type distance_from_beginning = element_pointer - to_aligned_pointer(group_pointer->elements);
 
@@ -4989,7 +4989,7 @@ public:
 					skipfield_pointer = group_pointer->skipfield + *(group_pointer->skipfield);
 					return;
 				}
-				else if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+				else if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
 					element_pointer = (to_aligned_pointer(group_pointer->elements) + group_pointer->size) - distance;
 					skipfield_pointer = (group_pointer->skipfield + group_pointer->size) - distance;
@@ -5017,7 +5017,7 @@ public:
 
 				if (element_pointer != to_aligned_pointer(group_pointer->elements) + *(group_pointer->skipfield)) // ie. != first non-erased element in group
 				{
-					if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+					if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 					{
 						const difference_type distance_from_end = pointer_cast<aligned_pointer_type>(group_pointer->skipfield) - element_pointer;
 
@@ -5097,7 +5097,7 @@ public:
 
 
 				// Final group (if not already reached):
-				if (group_pointer->size == group_pointer->capacity) // ie. if group is full
+				if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
 					element_pointer = to_aligned_pointer(group_pointer->elements) + distance;
 					skipfield_pointer = group_pointer->skipfield + distance;
