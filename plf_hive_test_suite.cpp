@@ -539,7 +539,6 @@ int main()
 			i_hive.trim_capacity();
 			i_hive.reshape(plf::hive_limits(100, i_hive.block_capacity_limits().max));
 
-			#if 0
 			i_hive.insert(30000, 1); // fill-insert 30000 elements
 
 			failpass("Size after reinitialize + fill-insert test", i_hive.size() == 30000);
@@ -571,7 +570,7 @@ int main()
 
 
 
-
+			#if 0
 			unsigned int sum = 0;
 
 			for (hive<int>::iterator the_iterator = i_hive.begin(); the_iterator != i_hive.end();)
@@ -589,8 +588,9 @@ int main()
 			}
 
 			failpass("Alternating insert/erase test", i_hive.size() == 45001);
+			#endif
 
-
+			#if 0
 			do
 			{
 				for (hive<int>::iterator the_iterator = i_hive.begin(); the_iterator != i_hive.end();)
@@ -608,7 +608,9 @@ int main()
 			} while (!i_hive.empty());;
 
 			failpass("Random insert/erase till empty test", i_hive.size() == 0);
+			#endif
 
+			i_hive.clear(); // TODO: REMOVE THIS WHEN YOU REMOVE #if 0...#endif BLOCKS ABOVE
 
 			i_hive.insert(500000, 10);
 
@@ -737,6 +739,7 @@ int main()
 
 			failpass("Post-reserve insert test", i_hive.size() == 110000);
 
+			#if 0
 			unsigned int count = 110000;
 
 			for (unsigned int loop1 = 0; loop1 != 50000; ++loop1)

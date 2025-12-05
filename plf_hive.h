@@ -1570,7 +1570,7 @@ private:
 		#endif
 	}
 
-
+	#endif
 
 	void fill_skipblock(const element_type &element, const aligned_pointer_type location, const skipfield_pointer_type skipfield_pointer, const skipfield_type size)
 	{
@@ -1622,7 +1622,7 @@ private:
 		total_size += size;
 	}
 
-	#endif
+
 
 	void fill_unused_groups(size_type size, const element_type &element, size_type group_number, group_pointer_type previous_group, const group_pointer_type current_group)
 	{
@@ -1634,6 +1634,7 @@ private:
 			size -= static_cast<size_type>(capacity);
 			end_iterator.element_pointer = to_aligned_pointer(end_iterator.group_pointer->elements);
 			fill(element, capacity);
+			end_iterator.group_pointer->used_buckets.set();
 		}
 
 		// Deal with final group (partial fill)
@@ -1642,9 +1643,11 @@ private:
 		end_iterator.element_pointer = to_aligned_pointer(end_iterator.group_pointer->elements);
 		end_iterator.skipfield_pointer = end_iterator.group_pointer->skipfield + size;
 		fill(element, static_cast<skipfield_type>(size));
+		end_iterator.group_pointer->used_buckets.reset();
+		end_iterator.group_pointer->used_buckets.set_range(0, size);
 	}
 
-	#if 0
+
 
 public:
 
@@ -1674,8 +1677,11 @@ public:
 		// Use up erased locations if available:
 		while(erasure_groups_head != nullptr) // skipblock loop: breaks when hive is exhausted of reusable skipblocks, or returns if size == 0
 		{
-			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head;
-			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + erasure_groups_head->free_list_head;
+			// Index of the first unoccupied bucket
+			const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
+
+			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;
+			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + pos;
 			const skipfield_type skipblock_size = *skipfield_pointer;
 
 			if (erasure_groups_head == begin_iterator.group_pointer && element_pointer < begin_iterator.element_pointer)
@@ -1686,39 +1692,40 @@ public:
 
 			if (skipblock_size <= size)
 			{
-				erasure_groups_head->free_list_head = *pointer_cast<skipfield_pointer_type>(element_pointer); // set free list head to previous free list node
 				fill_skipblock(element, element_pointer, skipfield_pointer, skipblock_size);
+
+				// Mark buckets as occupied
+				erasure_groups_head->used_buckets.set_range(pos, pos + skipblock_size);
+
 				size -= skipblock_size;
 
-				if (erasure_groups_head->free_list_head != std::numeric_limits<skipfield_type>::max()) // ie. there are more skipblocks to be filled in this group
+				if (erasure_groups_head->size == erasure_groups_head->capacity)
 				{
-					edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head, std::numeric_limits<skipfield_type>::max()); // set 'next' index of new free list head to 'end' (numeric max)
-				}
-				else
-				{
-					erasure_groups_head = erasure_groups_head->erasures_list_next_group; // change groups
+					remove_from_groups_with_erasures_list(erasure_groups_head);
 				}
 
 				if (size == 0) return;
 			}
 			else // skipblock is larger than remaining number of elements
 			{
-				const skipfield_type prev_index = *pointer_cast<skipfield_pointer_type>(element_pointer); // save before element location is overwritten
+				assert(!"THIS IS NOT FIXED YET");
+
+				// const skipfield_type prev_index = *pointer_cast<skipfield_pointer_type>(element_pointer); // save before element location is overwritten
 				fill_skipblock(element, element_pointer, skipfield_pointer, static_cast<skipfield_type>(size));
 				const skipfield_type new_skipblock_size = static_cast<skipfield_type>(skipblock_size - size);
 
 				// Update skipfield (earlier nodes already memset'd in fill_skipblock function):
 				*(skipfield_pointer + size) = new_skipblock_size;
 				*(skipfield_pointer + skipblock_size - 1) = new_skipblock_size;
-				erasure_groups_head->free_list_head = static_cast<skipfield_type>(erasure_groups_head->free_list_head + size); // set free list head to new start node
+				// erasure_groups_head->free_list_head = static_cast<skipfield_type>(erasure_groups_head->free_list_head + size); // set free list head to new start node
 
 				// Update free list with new head:
-				edit_free_list_head(element_pointer + size, prev_index);
+				// edit_free_list_head(element_pointer + size, prev_index);
 
-				if (prev_index != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + prev_index,  erasure_groups_head->free_list_head); // set 'next' index of previous skipblock to new start of skipblock
-				}
+				// if (prev_index != std::numeric_limits<skipfield_type>::max())
+				// {
+				// 	edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + prev_index,  erasure_groups_head->free_list_head); // set 'next' index of previous skipblock to new start of skipblock
+				// }
 
 				return;
 			}
@@ -1731,7 +1738,18 @@ public:
 
 		if (group_remainder != 0)
 		{
+			// Index of the first unoccupied bucket
+			const std::size_t pos = std::distance
+			(
+				to_aligned_pointer(end_iterator.group_pointer->elements),
+				end_iterator.element_pointer
+			);
+
 			fill(element, group_remainder);
+
+			// Mark buckets as occupied
+			end_iterator.group_pointer->used_buckets.set_range(pos, group_remainder);
+
 			end_iterator.group_pointer->size = static_cast<skipfield_type>(end_iterator.group_pointer->size + group_remainder);
 
 			if (size == group_remainder) // ie. remaining capacity was >= remaining elements to be filled
@@ -1750,7 +1768,7 @@ public:
 		fill_unused_groups(size, element, end_iterator.group_pointer->group_number + 1u, end_iterator.group_pointer, unused_groups_head);
 	}
 
-	#endif
+
 
 private:
 
@@ -3497,7 +3515,7 @@ public:
 		unused_groups_head = first_unused_group;
 	}
 
-	#if 0
+
 
 private:
 
@@ -3546,7 +3564,7 @@ public:
 		return get_it<true>(const_cast<pointer>(element_pointer));
 	}
 
-	#endif
+
 
 	allocator_type get_allocator() const noexcept
 	{
