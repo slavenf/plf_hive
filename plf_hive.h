@@ -247,7 +247,7 @@ private:
 		group_pointer_type						next_group;			// Next group in the linked list of all groups. nullptr if no following group. 2nd in struct because it is so frequently used during iteration.
 		const aligned_struct_pointer_type	elements;			// Element storage.
 		group_pointer_type						previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
-		plf::bitsetc<>							used_buckets;
+		plf::bitsetc<>							unused_buckets;
 		const skipfield_type 					capacity;			// The element capacity of this particular group - can also be calculated from reinterpret_cast<aligned_pointer_type>(group->skipfield) - group->elements, however this space is effectively free due to struct padding and the sizeof(skipfield_type), and calculating it once is faster in benchmarking.
 		skipfield_type 							size; 				// The total number of active elements in group - changes with insert and erase commands - used to check for empty group in erase function, as an indication to remove the group. Also used in combination with capacity to check if group is full, which is used in the next/previous/advance/distance overloads, and range-erase.
 		group_pointer_type						erasures_list_next_group, erasures_list_previous_group; // The next and previous groups in the list of groups with erasures ie. with active erased-element free lists. nullptr if no next or previous group.
@@ -259,7 +259,7 @@ private:
 			next_group(nullptr),
 			elements(std::allocator_traits<aligned_struct_allocator_type>::allocate(aligned_struct_allocator, get_aligned_block_capacity(elements_per_group), (previous == nullptr) ? 0 : previous->elements)),
 			previous_group(previous),
-			used_buckets(elements_per_group),
+			unused_buckets(elements_per_group),
 			capacity(elements_per_group),
 			size(1),
 			erasures_list_next_group(nullptr),
@@ -275,7 +275,7 @@ private:
 		void reset(const skipfield_type increment, const group_pointer_type next, const group_pointer_type previous, const size_type group_num) noexcept
 		{
 			next_group = next;
-			used_buckets.reset();
+			unused_buckets.set();
 			previous_group = previous;
 			size = increment;
 			erasures_list_next_group = nullptr;
@@ -1065,8 +1065,8 @@ public:
 						return_iterator.element_pointer
 					);
 
-					// Mark the bucket as occupied
-					return_iterator.group_pointer->used_buckets.set(pos);
+					// Mark the bucket as used
+					return_iterator.group_pointer->unused_buckets.reset(pos);
 
 					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
@@ -1076,7 +1076,7 @@ public:
 
 					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 					std::cout << " - pos1: " << pos << std::endl;
-					std::cout << " - used_buckets: " << return_iterator.group_pointer->used_buckets << std::endl;
+					std::cout << " - unused_buckets: " << return_iterator.group_pointer->unused_buckets << std::endl;
 					std::cout << " - skipfield: ";
 					for (skipfield_type i = 0; i < return_iterator.group_pointer->capacity; ++i)
 					{
@@ -1128,8 +1128,8 @@ public:
 				// Index of the bucket where the element is inserted - it is always zero in this case
 				constexpr std::size_t pos = 0;
 
-				// Mark the bucket as occupied
-				it.group_pointer->used_buckets.set(pos);
+				// Mark the bucket as used
+				it.group_pointer->unused_buckets.reset(pos);
 
 				// Update end_iterator and total_size
 				end_iterator.group_pointer->next_group = next_group;
@@ -1140,7 +1140,7 @@ public:
 
 				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 				std::cout << " - pos2: " << pos << std::endl;
-				std::cout << " - used_buckets: " << it.group_pointer->used_buckets << std::endl;
+				std::cout << " - unused_buckets: " << it.group_pointer->unused_buckets << std::endl;
 				std::cout << " - skipfield: ";
 				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
 				{
@@ -1153,12 +1153,12 @@ public:
 			}
 			else // there are erased elements, reuse those memory locations
 			{
-				// Index of the first unoccupied bucket
-				const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
+				// Index of the first unused bucket
+				const std::size_t pos = erasure_groups_head->unused_buckets.first_one();
 
 				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 				std::cout << " - pos3: " << pos << std::endl;
-				std::cout << " - used_buckets before: " << erasure_groups_head->used_buckets << std::endl;
+				std::cout << " - unused_buckets before: " << erasure_groups_head->unused_buckets << std::endl;
 				std::cout << " - skipfield before: ";
 				for (skipfield_type i = 0; i < erasure_groups_head->capacity; ++i)
 				{
@@ -1178,14 +1178,14 @@ public:
 				// Construct element at the unoccupied bucket
 				construct_element(it.element_pointer, element);
 
-				// Mark the bucket as occupied
-				it.group_pointer->used_buckets.set(pos);
+				// Mark the bucket as used
+				it.group_pointer->unused_buckets.reset(pos);
 
 				// Update skipblock
 				update_skipblock(it);
 
 				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-				std::cout << " - used_buckets after:  " << it.group_pointer->used_buckets << std::endl;
+				std::cout << " - unused_buckets after:  " << it.group_pointer->unused_buckets << std::endl;
 				std::cout << " - skipfield after: ";
 				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
 				{
@@ -1223,8 +1223,8 @@ public:
 			// Index of the bucket where the element is inserted - it is always zero in this case
 			constexpr std::size_t pos = 0;
 
-			// Mark the bucket as occupied
-			begin_iterator.group_pointer->used_buckets.set(pos);
+			// Mark the bucket as used
+			begin_iterator.group_pointer->unused_buckets.reset(pos);
 
 			// Update end_iterator and total_size
 			++end_iterator.element_pointer;
@@ -1233,7 +1233,7 @@ public:
 
 			#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
 			std::cout << " - pos4: " << pos << std::endl;
-			std::cout << " - used_buckets: " << begin_iterator.group_pointer->used_buckets << std::endl;
+			std::cout << " - unused_buckets: " << begin_iterator.group_pointer->unused_buckets << std::endl;
 			std::cout << " - skipfield: ";
 			for (skipfield_type i = 0; i < begin_iterator.group_pointer->capacity; ++i)
 			{
@@ -1634,7 +1634,7 @@ private:
 			size -= static_cast<size_type>(capacity);
 			end_iterator.element_pointer = to_aligned_pointer(end_iterator.group_pointer->elements);
 			fill(element, capacity);
-			end_iterator.group_pointer->used_buckets.set();
+			end_iterator.group_pointer->unused_buckets.reset();
 		}
 
 		// Deal with final group (partial fill)
@@ -1643,8 +1643,8 @@ private:
 		end_iterator.element_pointer = to_aligned_pointer(end_iterator.group_pointer->elements);
 		end_iterator.skipfield_pointer = end_iterator.group_pointer->skipfield + size;
 		fill(element, static_cast<skipfield_type>(size));
-		end_iterator.group_pointer->used_buckets.reset();
-		end_iterator.group_pointer->used_buckets.set_range(0, size);
+		end_iterator.group_pointer->unused_buckets.set();
+		end_iterator.group_pointer->unused_buckets.reset_range(0, size);
 	}
 
 
@@ -1677,8 +1677,8 @@ public:
 		// Use up erased locations if available:
 		while(erasure_groups_head != nullptr) // skipblock loop: breaks when hive is exhausted of reusable skipblocks, or returns if size == 0
 		{
-			// Index of the first unoccupied bucket
-			const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
+			// Index of the first unused bucket
+			const std::size_t pos = erasure_groups_head->unused_buckets.first_one();
 
 			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;
 			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + pos;
@@ -1694,8 +1694,8 @@ public:
 			{
 				fill_skipblock(element, element_pointer, skipfield_pointer, skipblock_size);
 
-				// Mark buckets as occupied
-				erasure_groups_head->used_buckets.set_range(pos, pos + skipblock_size);
+				// Mark buckets as used
+				erasure_groups_head->unused_buckets.reset_range(pos, pos + skipblock_size);
 
 				size -= skipblock_size;
 
@@ -1747,8 +1747,8 @@ public:
 
 			fill(element, group_remainder);
 
-			// Mark buckets as occupied
-			end_iterator.group_pointer->used_buckets.set_range(pos, group_remainder);
+			// Mark buckets as used
+			end_iterator.group_pointer->unused_buckets.reset_range(pos, group_remainder);
 
 			end_iterator.group_pointer->size = static_cast<skipfield_type>(end_iterator.group_pointer->size + group_remainder);
 
@@ -1923,8 +1923,8 @@ private:
 
 		while(erasure_groups_head != nullptr)
 		{
-			// Index of the first unoccupied bucket
-			const std::size_t pos = erasure_groups_head->used_buckets.first_zero();
+			// Index of the first unused bucket
+			const std::size_t pos = erasure_groups_head->unused_buckets.first_one();
 
 			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;//erasure_groups_head->free_list_head;
 			const skipfield_pointer_type skipfield_pointer = erasure_groups_head->skipfield + pos;//erasure_groups_head->free_list_head;
@@ -2130,8 +2130,8 @@ public:
 			it.element_pointer
 		);
 
-		// Mark the bucket as unoccupied
-		it.group_pointer->used_buckets.reset(pos);
+		// Mark the bucket as unused
+		it.group_pointer->unused_buckets.set(pos);
 
 		--total_size;
 
