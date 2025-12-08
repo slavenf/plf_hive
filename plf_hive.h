@@ -964,7 +964,7 @@ private:
 		*(new_location.skipfield_pointer) = 0;
 
 		// If group is full
-		if (new_location.group_pointer->size == new_location.group_pointer->capacity)
+		if (new_location.group_pointer->size == new_location.group_pointer->capacity || (new_location.group_pointer == end_iterator.group_pointer && static_cast<skipfield_type>(end_iterator.element_pointer - to_aligned_pointer(end_iterator.group_pointer->elements)) == new_location.group_pointer->size))
 		{
 			remove_from_groups_with_erasures_list(erasure_groups_head);
 		}
@@ -1699,7 +1699,7 @@ public:
 
 				size -= skipblock_size;
 
-				if (erasure_groups_head->size == erasure_groups_head->capacity)
+				if (erasure_groups_head->size == erasure_groups_head->capacity || (erasure_groups_head == end_iterator.group_pointer && static_cast<skipfield_type>(end_iterator.element_pointer - to_aligned_pointer(end_iterator.group_pointer->elements)) == erasure_groups_head->size))
 				{
 					remove_from_groups_with_erasures_list(erasure_groups_head);
 				}
