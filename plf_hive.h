@@ -2002,7 +2002,7 @@ private:
 
 
 public:
-	#if 0
+
 	// Range insert:
 
 	template <class iterator_type>
@@ -2011,7 +2011,7 @@ public:
 		range_insert(first, static_cast<size_type>(std::distance(first, last)));
 	}
 
-
+	#if 0
 
 	// Range insert, move_iterator overload:
 
