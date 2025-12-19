@@ -2055,6 +2055,7 @@ int main()
 				failpass("Post-splice insert-and-erase randomly till-empty test", hive1.size() == 0);
 			}
 		}
+		#endif
 
 		{
 			title2("erase_if tests");
@@ -2105,7 +2106,6 @@ int main()
 
 			failpass("erase_if test",	static_cast<int>(i_hive.size()) == 500);
 		}
-		#endif
 	}
 
 	title1("Test Suite PASS - Press ENTER to Exit");
