@@ -1424,7 +1424,7 @@ int main()
 			failpass("Range insert when not empty test", i_hive.size() == 6003);
 		}
 
-		#if 0
+
 		{
 			title2("Assign tests");
 
@@ -1621,6 +1621,7 @@ int main()
 		}
 
 
+		#if 0
 		{
 			title2("Perfect Forwarding tests");
 

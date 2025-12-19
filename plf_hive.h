@@ -2978,7 +2978,7 @@ public:
 		range_assign(first, static_cast<size_type>(std::distance(first.base(),last.base())));
 	}
 
-
+	#endif
 
 	// Initializer-list assign:
 
@@ -2987,7 +2987,7 @@ public:
 		range_assign(element_list.begin(), static_cast<size_type>(element_list.size()));
 	}
 
-
+	#if 0
 
 	template<class range_type>
 		requires std::ranges::range<range_type>
