@@ -903,52 +903,6 @@ private:
 
 	#endif
 
-	#if 0 // TODO: This is old function. Can be removed.
-	void update_skipblock(const iterator &new_location, const skipfield_type prev_free_list_index) noexcept
-	{
-		const skipfield_type new_value = static_cast<skipfield_type>(*(new_location.skipfield_pointer) - 1);
-
-		if (new_value != 0) // ie. skipfield was not originally length 1, hence we need to truncate it
-		{
-			// set (new) start and (original) end of skipblock to new value:
-			*(new_location.skipfield_pointer + new_value) = *(new_location.skipfield_pointer + 1) = new_value;
-
-			// transfer free list node to new start node:
-			++(erasure_groups_head->free_list_head);
-
-			if (prev_free_list_index != std::numeric_limits<skipfield_type>::max()) // ie. not the tail free list node
-			{
-				edit_free_list_next(to_aligned_pointer(new_location.group_pointer->elements) + prev_free_list_index, erasure_groups_head->free_list_head);
-			}
-
-			edit_free_list_head(new_location.element_pointer + 1, prev_free_list_index);
-		}
-		else // single-node skipblock, remove skipblock
-		{
-			erasure_groups_head->free_list_head = prev_free_list_index;
-
-			if (prev_free_list_index != std::numeric_limits<skipfield_type>::max()) // ie. not the last free list node
-			{
-				edit_free_list_next(to_aligned_pointer(new_location.group_pointer->elements) + prev_free_list_index, std::numeric_limits<skipfield_type>::max());
-			}
-			else // remove this group from the list of groups with erasures
-			{
-				erasure_groups_head = erasure_groups_head->erasures_list_next_group; // No need to update previous group for new head, as this is never accessed if group == head
-			}
-		}
-
-		*(new_location.skipfield_pointer) = 0;
-		++(new_location.group_pointer->size);
-
-		if (new_location.group_pointer == begin_iterator.group_pointer && new_location.element_pointer < begin_iterator.element_pointer)
-		{ /* ie. begin_iterator was moved forwards as the result of an erasure at some point, this erased element is before the current begin, hence, set current begin iterator to this element */
-			begin_iterator = new_location;
-		}
-
-		++total_size;
-	}
-	#endif
-
 	void update_skipblock(const iterator &new_location) noexcept
 	{
 		// Calculate new skip value
