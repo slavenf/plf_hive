@@ -3506,7 +3506,7 @@ public:
 		return static_cast<allocator_type>(*this);
 	}
 
-	#if 0
+
 
 private:
 
@@ -3603,21 +3603,14 @@ public:
 						std::memset(static_cast<void *>(end_iterator.skipfield_pointer + 1), 1, sizeof(skipfield_type) * (distance_to_end - 2));
 					}
 
-					const skipfield_type index = static_cast<skipfield_type>(end_iterator.element_pointer - to_aligned_pointer(end_iterator.group_pointer->elements));
-
-					if (end_iterator.group_pointer->free_list_head != std::numeric_limits<skipfield_type>::max()) // ie. if this group already has some erased elements
+					if (static_cast<skipfield_type>(end_iterator.element_pointer - to_aligned_pointer(end_iterator.group_pointer->elements)) != end_iterator.group_pointer->size) // ie. if this group already has some erased elements
 					{
-						edit_free_list_next(to_aligned_pointer(end_iterator.group_pointer->elements) + end_iterator.group_pointer->free_list_head, index); // set prev free list head's 'next index' number to the index of the current element
+						// Nothing to do
 					}
 					else
 					{
-						end_iterator.group_pointer->erasures_list_next_group = erasure_groups_head; // add it to the groups-with-erasures free list
-						if (erasure_groups_head != nullptr) erasure_groups_head->erasures_list_previous_group = end_iterator.group_pointer;
-						erasure_groups_head = end_iterator.group_pointer;
+						add_group_to_erasures_list(end_iterator.group_pointer);
 					}
-
-					edit_free_list_head(end_iterator.element_pointer, end_iterator.group_pointer->free_list_head);
-					end_iterator.group_pointer->free_list_head = index;
 				}
 				else
 				{ // update previous skipblock, no need to update free list:
@@ -3713,7 +3706,7 @@ public:
 		splice(std::move(source));
 	}
 
-	#endif
+
 
 private:
 
