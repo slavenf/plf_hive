@@ -799,7 +799,7 @@ private:
 	}
 
 
-	#if 0
+
 
 	constexpr void destroy_element(const aligned_pointer_type element) noexcept
 	{
@@ -826,7 +826,7 @@ private:
 		deallocate_group(begin_iterator.group_pointer);
 	}
 
-	#endif
+
 
 	void destroy_all_data() noexcept
 	{
@@ -2711,7 +2711,7 @@ private:
 
 public:
 
-	#if 0
+
 	// Fill assign:
 
 	void assign(size_type size, const element_type &element)
@@ -2759,7 +2759,7 @@ public:
 		}
 	}
 
-	#endif
+
 
 private:
 

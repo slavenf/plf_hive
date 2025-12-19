@@ -1076,7 +1076,6 @@ int main()
 		}
 
 
-		#if 0
 		{
 			title1("Non-trivial type tests");
 
@@ -1176,8 +1175,7 @@ int main()
 		}
 
 
-
-
+		#if 0
 		{
 			title2("Sort tests");
 
