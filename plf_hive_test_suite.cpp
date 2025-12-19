@@ -769,7 +769,7 @@ int main()
 			failpass("Multiple sequential small insert/erase commands test", count == i_hive.size());
 		}
 
-		#if 0
+
 		{
 			title2("Range-erase tests");
 
@@ -1076,7 +1076,7 @@ int main()
 		}
 
 
-
+		#if 0
 		{
 			title1("Non-trivial type tests");
 

@@ -2630,6 +2630,29 @@ public:
 
 	#endif
 
+	// TODO: Temporary implementation of range erase. Rework original range erase above.
+	iterator erase(const const_iterator iterator1, const const_iterator iterator2)
+	{
+		iterator it(iterator1.group_pointer, iterator1.element_pointer, iterator1.skipfield_pointer);
+
+		while (it != iterator2)
+		{
+			if (empty())
+			{
+				break;
+			}
+
+			if (it == end())
+			{
+				break;
+			}
+
+			it = erase(it);
+		}
+
+		return it;
+	}
+
 private:
 
 	void prepare_groups_for_assign(const size_type size)
