@@ -1303,7 +1303,7 @@ public:
 		return insert(std::forward<element_type &&>(element));
 	}
 
-
+	#endif
 
 	template<typename... arguments>
 	iterator emplace(arguments &&... parameters) // The emplace function is near-identical to the regular insert function, with the exception of the element construction method, and change to is_nothrow tests.
@@ -1314,9 +1314,23 @@ public:
 			{
 				if (end_iterator.element_pointer != pointer_cast<aligned_pointer_type>(end_iterator.group_pointer->skipfield))
 				{
+					// Construct element at the unoccupied bucket - it is always end_iterator in this case
 					construct_element(end_iterator.element_pointer, std::forward<arguments>(parameters) ...);
 
+					// Iterator to the inserted element
 					const iterator return_iterator = end_iterator;
+
+					// Index of the bucket where the element is inserted
+					const std::size_t pos = std::distance
+					(
+						to_aligned_pointer(return_iterator.group_pointer->elements),
+						return_iterator.element_pointer
+					);
+
+					// Mark the bucket as used
+					return_iterator.group_pointer->unused_buckets.reset(pos);
+
+					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
 					++end_iterator.skipfield_pointer;
 					++(end_iterator.group_pointer->size);
@@ -1357,23 +1371,47 @@ public:
 					next_group = reuse_unused_group();
 				}
 
+				// Iterator to the inserted element
+				const iterator it(next_group, to_aligned_pointer(next_group->elements), next_group->skipfield);
+
+				// Index of the bucket where the element is inserted - it is always zero in this case
+				constexpr std::size_t pos = 0;
+
+				// Mark the bucket as used
+				it.group_pointer->unused_buckets.reset(pos);
+
+				// Update end_iterator and total_size
 				end_iterator.group_pointer->next_group = next_group;
 				end_iterator.group_pointer = next_group;
 				end_iterator.element_pointer = to_aligned_pointer(next_group->elements) + 1;
 				end_iterator.skipfield_pointer = next_group->skipfield + 1;
 				++total_size;
 
-				return iterator(next_group, to_aligned_pointer(next_group->elements), next_group->skipfield);
+				return it;
 			}
 			else
 			{
-				iterator new_location(erasure_groups_head, to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head, erasure_groups_head->skipfield + erasure_groups_head->free_list_head);
+				// Index of the first unused bucket
+				const std::size_t pos = erasure_groups_head->unused_buckets.first_one();
 
-				const skipfield_type prev_free_list_index = *pointer_cast<skipfield_pointer_type>(new_location.element_pointer);
-				construct_element(new_location.element_pointer, std::forward<arguments>(parameters) ...);
-				update_skipblock(new_location, prev_free_list_index);
+				// Iterator to the unoccupied bucket
+				const iterator it
+				(
+					erasure_groups_head,
+					std::next(to_aligned_pointer(erasure_groups_head->elements), pos),
+					std::next(erasure_groups_head->skipfield, pos)
+				);
 
-				return new_location;
+				// Construct element at the unoccupied bucket
+				construct_element(it.element_pointer, std::forward<arguments>(parameters) ...);
+
+				// Mark the bucket as used
+				it.group_pointer->unused_buckets.reset(pos);
+
+				// Update skipblock
+				update_skipblock(it);
+
+				return it;
 			}
 		}
 		else
@@ -1385,7 +1423,7 @@ public:
 				{
 					try
 					{
-						construct_element(end_iterator.element_pointer++, std::forward<arguments>(parameters) ...);
+						construct_element(end_iterator.element_pointer, std::forward<arguments>(parameters) ...);
 					}
 					catch (...)
 					{
@@ -1396,16 +1434,25 @@ public:
 				else
 			#endif
 			{
-				construct_element(end_iterator.element_pointer++, std::forward<arguments>(parameters) ...);
+				construct_element(end_iterator.element_pointer, std::forward<arguments>(parameters) ...);
 			}
 
+			// Index of the bucket where the element is inserted - it is always zero in this case
+			constexpr std::size_t pos = 0;
+
+			// Mark the bucket as used
+			begin_iterator.group_pointer->unused_buckets.reset(pos);
+
+			// Update end_iterator and total_size
+			++end_iterator.element_pointer;
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
+
 			return begin_iterator;
 		}
 	}
 
-
+	#if 0
 
 	template<typename... arguments>
 	iterator emplace_hint([[maybe_unused]] const_iterator hint, arguments &&... parameters)

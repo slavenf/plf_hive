@@ -1621,7 +1621,6 @@ int main()
 		}
 
 
-		#if 0
 		{
 			title2("Perfect Forwarding tests");
 
@@ -1659,6 +1658,7 @@ int main()
 		}
 
 
+		#if 0
 		{
 			title2("Non-copyable type test");
 
