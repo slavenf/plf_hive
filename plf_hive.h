@@ -1042,10 +1042,6 @@ public:
 
 	iterator insert(const element_type &element) // Note: defining insert & and insert && as calls to emplace results in larger codegen in release mode (under GCC at least), and prevents more accurate is_nothrow tests
 	{
-		#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-		std::cout << "inserting element: " << element << std::endl;
-		#endif
-
 		if (end_iterator.element_pointer != nullptr) // ie. empty hive, no blocks allocated yet
 		{
 			if (erasure_groups_head == nullptr) // ie. there are no erased elements
@@ -1073,17 +1069,6 @@ public:
 					++end_iterator.skipfield_pointer;
 					++(end_iterator.group_pointer->size);
 					++total_size;
-
-					#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-					std::cout << " - pos1: " << pos << std::endl;
-					std::cout << " - unused_buckets: " << return_iterator.group_pointer->unused_buckets << std::endl;
-					std::cout << " - skipfield: ";
-					for (skipfield_type i = 0; i < return_iterator.group_pointer->capacity; ++i)
-					{
-						std::cout << int(return_iterator.group_pointer->skipfield[i]) << " ";
-					}
-					std::cout << std::endl;
-					#endif
 
 					return return_iterator;
 				}
@@ -1138,34 +1123,12 @@ public:
 				end_iterator.skipfield_pointer = next_group->skipfield + 1;
 				++total_size;
 
-				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-				std::cout << " - pos2: " << pos << std::endl;
-				std::cout << " - unused_buckets: " << it.group_pointer->unused_buckets << std::endl;
-				std::cout << " - skipfield: ";
-				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
-				{
-					std::cout << int(it.group_pointer->skipfield[i]) << " ";
-				}
-				std::cout << std::endl;
-				#endif
-
 				return it;
 			}
 			else // there are erased elements, reuse those memory locations
 			{
 				// Index of the first unused bucket
 				const std::size_t pos = erasure_groups_head->unused_buckets.first_one();
-
-				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-				std::cout << " - pos3: " << pos << std::endl;
-				std::cout << " - unused_buckets before: " << erasure_groups_head->unused_buckets << std::endl;
-				std::cout << " - skipfield before: ";
-				for (skipfield_type i = 0; i < erasure_groups_head->capacity; ++i)
-				{
-					std::cout << int(erasure_groups_head->skipfield[i]) << " ";
-				}
-				std::cout << std::endl;
-				#endif
 
 				// Iterator to the unoccupied bucket
 				const iterator it
@@ -1183,16 +1146,6 @@ public:
 
 				// Update skipblock
 				update_skipblock(it);
-
-				#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-				std::cout << " - unused_buckets after:  " << it.group_pointer->unused_buckets << std::endl;
-				std::cout << " - skipfield after: ";
-				for (skipfield_type i = 0; i < it.group_pointer->capacity; ++i)
-				{
-					std::cout << int(it.group_pointer->skipfield[i]) << " ";
-				}
-				std::cout << std::endl;
-				#endif
 
 				return it;
 			}
@@ -1230,17 +1183,6 @@ public:
 			++end_iterator.element_pointer;
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
-
-			#ifdef PLF_COLONY_TEST_DEBUG // used for debugging during internal testing only
-			std::cout << " - pos4: " << pos << std::endl;
-			std::cout << " - unused_buckets: " << begin_iterator.group_pointer->unused_buckets << std::endl;
-			std::cout << " - skipfield: ";
-			for (skipfield_type i = 0; i < begin_iterator.group_pointer->capacity; ++i)
-			{
-				std::cout << int(begin_iterator.group_pointer->skipfield[i]) << " ";
-			}
-			std::cout << std::endl;
-			#endif
 
 			return begin_iterator;
 		}
