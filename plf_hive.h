@@ -870,38 +870,7 @@ private:
 		end_iterator.skipfield_pointer = begin_iterator.skipfield_pointer = begin_iterator.group_pointer->skipfield;
 	}
 
-	#if 0
 
-	void edit_free_list(const skipfield_pointer_type location, const skipfield_type value) noexcept
-	{
- 		std::allocator_traits<skipfield_allocator_type>::destroy(skipfield_allocator, location);
-		std::allocator_traits<skipfield_allocator_type>::construct(skipfield_allocator, location, value);
-	}
-
-
-
-	void edit_free_list_prev(const aligned_pointer_type location, const skipfield_type value) noexcept // Write to the 'previous erased element' index in the erased element memory location
-	{
-		edit_free_list(pointer_cast<skipfield_pointer_type>(location), value);
-	}
-
-
-
-	void edit_free_list_next(const aligned_pointer_type location, const skipfield_type value) noexcept // Ditto 'next'
-	{
-		edit_free_list(pointer_cast<skipfield_pointer_type>(location) + 1, value);
-	}
-
-
-
-	void edit_free_list_head(const aligned_pointer_type location, const skipfield_type value) noexcept
-	{
-		const skipfield_pointer_type converted_location = pointer_cast<skipfield_pointer_type>(location);
-		edit_free_list(converted_location, value);
-		edit_free_list(converted_location + 1, std::numeric_limits<skipfield_type>::max());
-	}
-
-	#endif
 
 	void update_skipblock(const iterator &new_location) noexcept
 	{
