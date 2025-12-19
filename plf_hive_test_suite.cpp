@@ -1658,7 +1658,6 @@ int main()
 		}
 
 
-		#if 0
 		{
 			title2("Non-copyable type test");
 
@@ -1671,6 +1670,7 @@ int main()
 		}
 
 
+		#if 0
 		{
 			title2("Misc function tests");
 
