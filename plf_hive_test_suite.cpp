@@ -1175,7 +1175,6 @@ int main()
 		}
 
 
-		#if 0
 		{
 			title2("Sort tests");
 
@@ -1325,7 +1324,7 @@ int main()
 
 
 
-
+		#if 0
 		{
 			title2("Different insertion-style tests");
 

@@ -3801,7 +3801,7 @@ public:
 		splice(std::move(source));
 	}
 
-
+	#endif
 
 private:
 
@@ -4007,7 +4007,7 @@ public:
 	}
 
 
-	#endif
+
 
 	void swap(hive &source) noexcept(std::allocator_traits<allocator_type>::propagate_on_container_swap::value || std::allocator_traits<allocator_type>::is_always_equal::value)
 	{
