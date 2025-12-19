@@ -1670,7 +1670,6 @@ int main()
 		}
 
 
-		#if 0
 		{
 			title2("Misc function tests");
 
@@ -1720,6 +1719,7 @@ int main()
 
 		}
 
+		#if 0
 		{
 			title2("Splice tests");
 
