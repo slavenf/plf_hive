@@ -52,7 +52,7 @@
 #include <compare> // std::strong_ordering
 #include <ranges>
 
-#include "plf_bitsetc.h"
+#include "plf_bitsetb.h"
 
 
 
@@ -247,7 +247,7 @@ private:
 		group_pointer_type						next_group;			// Next group in the linked list of all groups. nullptr if no following group. 2nd in struct because it is so frequently used during iteration.
 		const aligned_struct_pointer_type	elements;			// Element storage.
 		group_pointer_type						previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
-		plf::bitsetc<>							unused_buckets;
+		plf::bitsetb<>							unused_buckets;
 		const skipfield_type 					capacity;			// The element capacity of this particular group - can also be calculated from reinterpret_cast<aligned_pointer_type>(group->skipfield) - group->elements, however this space is effectively free due to struct padding and the sizeof(skipfield_type), and calculating it once is faster in benchmarking.
 		skipfield_type 							size; 				// The total number of active elements in group - changes with insert and erase commands - used to check for empty group in erase function, as an indication to remove the group. Also used in combination with capacity to check if group is full, which is used in the next/previous/advance/distance overloads, and range-erase.
 		group_pointer_type						erasures_list_next_group, erasures_list_previous_group; // The next and previous groups in the list of groups with erasures ie. with active erased-element free lists. nullptr if no next or previous group.
