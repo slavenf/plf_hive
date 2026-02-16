@@ -1016,11 +1016,7 @@ public:
 					const iterator return_iterator = end_iterator;
 
 					// Index of the bucket where the element is inserted
-					const std::size_t pos = std::distance
-					(
-						to_aligned_pointer(return_iterator.group_pointer->elements),
-						return_iterator.element_pointer
-					);
+					const std::size_t pos = return_iterator.element_pointer - to_aligned_pointer(return_iterator.group_pointer->elements);
 
 					// Mark the bucket as used
 					return_iterator.group_pointer->erased_elements.reset(pos);
@@ -1282,11 +1278,7 @@ public:
 					const iterator return_iterator = end_iterator;
 
 					// Index of the bucket where the element is inserted
-					const std::size_t pos = std::distance
-					(
-						to_aligned_pointer(return_iterator.group_pointer->elements),
-						return_iterator.element_pointer
-					);
+					const std::size_t pos = return_iterator.element_pointer - to_aligned_pointer(return_iterator.group_pointer->elements);
 
 					// Mark the bucket as used
 					return_iterator.group_pointer->erased_elements.reset(pos);
@@ -1689,11 +1681,7 @@ public:
 		if (group_remainder != 0)
 		{
 			// Index of the first unoccupied bucket
-			const std::size_t pos = std::distance
-			(
-				to_aligned_pointer(end_iterator.group_pointer->elements),
-				end_iterator.element_pointer
-			);
+			const std::size_t pos = end_iterator.element_pointer - to_aligned_pointer(end_iterator.group_pointer->elements);
 
 			fill(element, group_remainder);
 
@@ -2074,11 +2062,7 @@ public:
 		}
 
 		// Index of the bucket where the element was placed
-		const std::size_t pos = std::distance
-		(
-			to_aligned_pointer(it.group_pointer->elements),
-			it.element_pointer
-		);
+		const std::size_t pos = it.element_pointer - to_aligned_pointer(it.group_pointer->elements);
 
 		// Mark the bucket as unused
 		it.group_pointer->erased_elements.set(pos);
