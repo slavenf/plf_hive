@@ -1686,7 +1686,7 @@ public:
 			fill(element, group_remainder);
 
 			// Mark buckets as used
-			end_iterator.group_pointer->erased_elements.reset_range(pos, group_remainder);
+			end_iterator.group_pointer->erased_elements.reset_range(pos, pos + group_remainder);
 
 			end_iterator.group_pointer->size += end_iterator.group_pointer->size;
 
@@ -3471,6 +3471,13 @@ public:
 
 			if (distance_to_end != 0) // 0 == edge case
 			{	 // Mark unused element memory locations from back group as skipped/erased:
+
+				// Index of the last element in the back group
+				const std::size_t pos = end_iterator.group_pointer->erased_elements.size() - distance_to_end;
+
+				// Mark buckets as unused
+				end_iterator.group_pointer->erased_elements.set_range(pos, pos + distance_to_end);
+
 				// Update skipfield:
 				const skipfield_type previous_node_value = *(end_iterator.skipfield_pointer - 1);
 

@@ -2000,7 +2000,6 @@ int main()
 
 				failpass("Large unequal size + erase splice test 1", check_number == total);
 
-				#if 0
 				do
 				{
 					for (hive<int>::iterator current = hive1.begin(); current != hive1.end();)
@@ -2023,7 +2022,6 @@ int main()
 				} while (!hive1.empty());
 
 				failpass("Post-splice insert-and-erase randomly till-empty test", hive1.size() == 0);
-				#endif
 			}
 		}
 
