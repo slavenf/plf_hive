@@ -2000,25 +2000,10 @@ private:
 
 
 
-	void add_group_to_erasures_list(const group_pointer_type group) noexcept
-	{
-		group->erasures_list_next_group = erasure_groups_head;
-		group->erasures_list_previous_group = group; // to allow iterator member functions to check whether a group contains erasures even if it's the erasure_groups_head
-
-		if (erasure_groups_head != nullptr)
-		{
-			erasure_groups_head->erasures_list_previous_group = group;
-		}
-
-		erasure_groups_head = group;
-	}
-
-
-	// TODO: THIS IS NEW ON MAIN BRANCH
-	#if 0
 	void add_to_groups_with_erasures_list(const group_pointer_type group_to_add) noexcept
 	{
 		group_to_add->erasures_list_next_group = erasure_groups_head;
+		group_to_add->erasures_list_previous_group = group_to_add; // to allow iterator member functions to check whether a group contains erasures even if it's the erasure_groups_head
 
 		if (erasure_groups_head != nullptr)
 		{
@@ -2027,7 +2012,6 @@ private:
 
 		erasure_groups_head = group_to_add;
 	}
-	#endif
 
 
 
@@ -2123,7 +2107,7 @@ public:
 
 				if (!is_group_in_erasures_list(it.group_pointer))
 				{
-					add_group_to_erasures_list(it.group_pointer);
+					add_to_groups_with_erasures_list(it.group_pointer);
 				}
 			}
 			else if (prev_skipfield & (!after_skipfield)) // previous erased consecutive elements, none following
@@ -3522,7 +3506,7 @@ public:
 					}
 					else
 					{
-						add_group_to_erasures_list(end_iterator.group_pointer);
+						add_to_groups_with_erasures_list(end_iterator.group_pointer);
 					}
 				}
 				else
