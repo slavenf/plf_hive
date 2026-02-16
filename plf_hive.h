@@ -1095,8 +1095,8 @@ public:
 				const iterator it
 				(
 					erasure_groups_head,
-					std::next(to_aligned_pointer(erasure_groups_head->elements), pos),
-					std::next(erasure_groups_head->skipfield, pos)
+					to_aligned_pointer(erasure_groups_head->elements) + pos,
+					erasure_groups_head->skipfield + pos
 				);
 
 				// Construct element at the unoccupied bucket
@@ -1359,8 +1359,8 @@ public:
 				const iterator it
 				(
 					erasure_groups_head,
-					std::next(to_aligned_pointer(erasure_groups_head->elements), pos),
-					std::next(erasure_groups_head->skipfield, pos)
+					to_aligned_pointer(erasure_groups_head->elements) + pos,
+					erasure_groups_head->skipfield + pos
 				);
 
 				// Construct element at the unoccupied bucket
