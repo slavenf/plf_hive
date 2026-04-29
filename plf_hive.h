@@ -1421,9 +1421,11 @@ public:
 		return emplace(std::forward<arguments>(parameters) ...);
 	}
 
-
+	#endif
 
 private:
+
+	#if 0
 
 	// For catch blocks in fill() and range_fill()
 	void recover_from_partial_fill()
