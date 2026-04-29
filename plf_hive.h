@@ -1153,14 +1153,14 @@ public:
 		}
 	}
 
-	#if 0
+
 
 	iterator insert([[maybe_unused]] const_iterator &hint, const element_type &element) // Note: hint is ignored, purely to serve other standard library functions like insert_iterator
 	{
 		return insert(element);
 	}
 
-	#endif
+
 
 	iterator insert(element_type &&element) // The move-insert function is near-identical to the regular insert function, with the exception of the element construction method and is_nothrow tests.
 	{
@@ -1306,14 +1306,14 @@ public:
 		}
 	}
 
-	#if 0
+
 
 	iterator insert([[maybe_unused]] const_iterator &hint, element_type &&element)
 	{
 		return insert(std::forward<element_type &&>(element));
 	}
 
-	#endif
+
 
 	template<typename... arguments>
 	iterator emplace(arguments &&... parameters) // The emplace function is near-identical to the regular insert function, with the exception of the element construction method, and change to is_nothrow tests.
@@ -1458,7 +1458,7 @@ public:
 		}
 	}
 
-	#if 0
+
 
 	template<typename... arguments>
 	iterator emplace_hint([[maybe_unused]] const_iterator &hint, arguments &&... parameters)
@@ -1466,7 +1466,7 @@ public:
 		return emplace(std::forward<arguments>(parameters) ...);
 	}
 
-	#endif
+
 
 private:
 
