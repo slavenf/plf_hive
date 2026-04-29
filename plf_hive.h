@@ -1160,19 +1160,29 @@ public:
 		return insert(element);
 	}
 
-
+	#endif
 
 	iterator insert(element_type &&element) // The move-insert function is near-identical to the regular insert function, with the exception of the element construction method and is_nothrow tests.
 	{
-		if (end_iterator.element_pointer != nullptr)
+		if (end_iterator.element_pointer != nullptr) // ie. empty hive, no blocks allocated yet
 		{
-			if (erasure_groups_head == nullptr)
+			if (erasure_groups_head == nullptr) // ie. there are no erased elements
 			{
-				if (end_iterator.element_pointer != to_aligned_pointer(end_iterator.group_pointer->skipfield))
+				if (end_iterator.element_pointer != to_aligned_pointer(end_iterator.group_pointer->skipfield)) // ie. end_iterator is not at end of block
 				{
+					// Construct element at the unoccupied bucket - it is always end_iterator in this case
 					construct_element(end_iterator.element_pointer, std::move(element));
 
+					// Iterator to the inserted element
 					const iterator return_iterator = end_iterator;
+
+					// Index of the bucket where the element is inserted
+					const std::size_t pos = return_iterator.element_pointer - to_aligned_pointer(return_iterator.group_pointer->elements);
+
+					// Mark the bucket as used
+					return_iterator.group_pointer->erased_elements.reset(pos);
+
+					// Update end_iterator and total_size
 					++end_iterator.element_pointer;
 					++end_iterator.skipfield_pointer;
 					++(end_iterator.group_pointer->size);
@@ -1181,9 +1191,11 @@ public:
 					return return_iterator;
 				}
 
+				// end_iterator is at the end of block, we need new group
+
 				group_pointer_type next_group;
 
-				if (unused_groups_head == nullptr)
+				if (unused_groups_head == nullptr) // ie. there are no unused groups, allocate new group
 				{
 					reset_group_numbers_if_necessary();
 					next_group = allocate_new_group(static_cast<skipfield_type>(std::min(total_size, static_cast<size_type>(max_block_capacity))), end_iterator.group_pointer);
@@ -1207,32 +1219,56 @@ public:
 						construct_element(next_group->elements, std::move(element));
 					}
 				}
-				else
+				else // there are unused groups, reuse those groups
 				{
 					construct_element(unused_groups_head->elements, std::move(element));
 					next_group = reuse_unused_group();
 				}
 
+				// Iterator to the inserted element
+				const iterator it(next_group, to_aligned_pointer(next_group->elements), next_group->skipfield);
+
+				// Index of the bucket where the element is inserted - it is always zero in this case
+				constexpr std::size_t pos = 0;
+
+				// Mark the bucket as used
+				it.group_pointer->erased_elements.reset(pos);
+
+				// Update end_iterator and total_size
 				end_iterator.group_pointer->next_group = next_group;
 				end_iterator.group_pointer = next_group;
 				end_iterator.element_pointer = to_aligned_pointer(next_group->elements) + 1;
 				end_iterator.skipfield_pointer = next_group->skipfield + 1;
 				++total_size;
 
-				return iterator(next_group, to_aligned_pointer(next_group->elements), next_group->skipfield);
+				return it;
 			}
-			else
+			else // there are erased elements, reuse those memory locations
 			{
-				iterator new_location(erasure_groups_head, to_aligned_pointer(erasure_groups_head->elements) + erasure_groups_head->free_list_head, erasure_groups_head->skipfield + erasure_groups_head->free_list_head);
+				// Index of the first unused bucket
+				const std::size_t pos = erasure_groups_head->erased_elements.first_one();
 
-				const skipfield_type prev_free_list_index = *pointer_cast<skipfield_pointer_type>(new_location.element_pointer);
-				construct_element(new_location.element_pointer, std::move(element));
-				update_skipblock(new_location, prev_free_list_index);
+				// Iterator to the unoccupied bucket
+				const iterator it
+				(
+					erasure_groups_head,
+					to_aligned_pointer(erasure_groups_head->elements) + pos,
+					erasure_groups_head->skipfield + pos
+				);
 
-				return new_location;
+				// Construct element at the unoccupied bucket
+				construct_element(it.element_pointer, std::move(element));
+
+				// Mark the bucket as used
+				it.group_pointer->erased_elements.reset(pos);
+
+				// Update skipblock
+				update_skipblock(it);
+
+				return it;
 			}
 		}
-		else
+		else // ie. newly-constructed hive, no insertions yet and no groups
 		{
 			initialize(min_block_capacity);
 
@@ -1241,7 +1277,7 @@ public:
 				{
 					try
 					{
-						construct_element(end_iterator.element_pointer++, std::move(element));
+						construct_element(end_iterator.element_pointer, std::move(element));
 					}
 					catch (...)
 					{
@@ -1252,16 +1288,25 @@ public:
 				else
 			#endif
 			{
-				construct_element(end_iterator.element_pointer++, std::move(element));
+				construct_element(end_iterator.element_pointer, std::move(element));
 			}
 
+			// Index of the bucket where the element is inserted - it is always zero in this case
+			constexpr std::size_t pos = 0;
+
+			// Mark the bucket as used
+			begin_iterator.group_pointer->erased_elements.reset(pos);
+
+			// Update end_iterator and total_size
+			++end_iterator.element_pointer;
 			++end_iterator.skipfield_pointer;
 			total_size = 1;
+
 			return begin_iterator;
 		}
 	}
 
-
+	#if 0
 
 	iterator insert([[maybe_unused]] const_iterator &hint, element_type &&element)
 	{
