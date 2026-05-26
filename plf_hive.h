@@ -22,8 +22,7 @@
 #define PLF_HIVE_H
 #define __cpp_lib_hive
 
-#include "plf_bitsetb.h"
-
+#include "plf_bitsetb.h" // This header undefs PLF_EXCEPTIONS_SUPPORT so it must be exactly here
 
 #define PLF_EXCEPTIONS_SUPPORT
 
@@ -55,6 +54,8 @@
 #include <concepts>
 #include <compare> // std::strong_ordering
 #include <ranges>
+
+
 
 namespace plf
 {
@@ -869,7 +870,6 @@ private:
 
 
 
-
 	constexpr void destroy_element(const aligned_pointer_type element) noexcept
 	{
 		if constexpr (!std::is_trivially_destructible<element_type>::value) // to avoid codegen in this function for trivial types
@@ -1299,8 +1299,6 @@ public:
 
 
 private:
-
-
 
 	// For catch blocks in fill() and range_fill()
 	void recover_from_partial_fill()
@@ -2233,6 +2231,8 @@ public:
 		return iterator(iterator2.group_pointer, iterator2.element_pointer, iterator2.skipfield_pointer);
 	}
 
+
+
 private:
 
 
@@ -2416,7 +2416,6 @@ private:
 			{
 				current.element_pointer = to_aligned_pointer(current.group_pointer->elements);
 				current.skipfield_pointer = current.group_pointer->skipfield;
-				// current.group_pointer->free_list_head = std::numeric_limits<skipfield_type>::max();
 
 				for (const aligned_pointer_type end = (current.group_pointer == end_iterator.group_pointer) ? end_iterator.element_pointer : to_aligned_pointer(current.group_pointer->skipfield); current.element_pointer != end;)
 				{
