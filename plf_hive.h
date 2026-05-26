@@ -22,6 +22,8 @@
 #define PLF_HIVE_H
 #define __cpp_lib_hive
 
+#include "plf_bitsetb.h"
+
 
 #define PLF_EXCEPTIONS_SUPPORT
 
@@ -53,10 +55,6 @@
 #include <concepts>
 #include <compare> // std::strong_ordering
 #include <ranges>
-
-#include "plf_bitsetb.h"
-
-
 
 namespace plf
 {
@@ -1302,7 +1300,7 @@ public:
 
 private:
 
-	#if 0
+
 
 	// For catch blocks in fill() and range_fill()
 	void recover_from_partial_fill()
@@ -1314,13 +1312,14 @@ private:
 				end_iterator.group_pointer->size = elements_constructed_before_exception;
 				end_iterator.skipfield_pointer = end_iterator.group_pointer->skipfield + elements_constructed_before_exception;
 				total_size += elements_constructed_before_exception;
+				end_iterator.group_pointer->erased_elements.reset_range(0, elements_constructed_before_exception);
 				unused_groups_head = end_iterator.group_pointer->next_group;
 				end_iterator.group_pointer->next_group = nullptr;
 			}
 		#endif
 	}
 
-	#endif
+
 
 	void fill(const element_type &element, const skipfield_type size)
 	{
@@ -1354,10 +1353,10 @@ private:
 		total_size += size;
 	}
 
-	#if 0
+
 
 	// For catch blocks in range_fill_skipblock and fill_skipblock - update existing skipblock and free-list indexes to reflect partially-reused skipblock:
-	void recover_from_partial_skipblock_fill(const aligned_pointer_type location, const aligned_pointer_type current_location, const skipfield_pointer_type skipfield_pointer, const skipfield_type prev_free_list_node)
+	void recover_from_partial_skipblock_fill(const aligned_pointer_type location, const aligned_pointer_type current_location, const skipfield_pointer_type skipfield_pointer)
 	{
 		#ifdef PLF_EXCEPTIONS_SUPPORT
 			if constexpr ((!std::is_copy_constructible<element_type>::value && !std::is_nothrow_move_constructible<element_type>::value) || !std::is_nothrow_copy_constructible<element_type>::value) // to avoid unnecessary codegen
@@ -1365,28 +1364,18 @@ private:
 				const skipfield_type elements_constructed_before_exception = static_cast<skipfield_type>(current_location - location);
 				erasure_groups_head->size += elements_constructed_before_exception;
 				total_size += elements_constructed_before_exception;
+				erasure_groups_head->erased_elements.reset_range(location - to_aligned_pointer(erasure_groups_head->elements), current_location - to_aligned_pointer(erasure_groups_head->elements));
 
 				// Update skipblock:
 				const skipfield_type new_start_node_value = *skipfield_pointer - elements_constructed_before_exception;
 				const skipfield_pointer_type new_start_node = skipfield_pointer + elements_constructed_before_exception;
 				std::memset(std::to_address(skipfield_pointer), 0, elements_constructed_before_exception * sizeof(skipfield_type)); // Reset skipfield for elements written before exception
 				*new_start_node = *(new_start_node + new_start_node_value - 1) = new_start_node_value; // Create new skipblock for unused elements
-
-				// Update free list of erased elements:
-				edit_free_list_head(location + elements_constructed_before_exception, prev_free_list_node);
-
-				const skipfield_type new_skipblock_head_index = static_cast<skipfield_type>(current_location - to_aligned_pointer(erasure_groups_head->elements));
-				erasure_groups_head->free_list_head = new_skipblock_head_index;
-
-				if (prev_free_list_node != std::numeric_limits<skipfield_type>::max())
-				{
-					edit_free_list_next(to_aligned_pointer(erasure_groups_head->elements) + prev_free_list_node, new_skipblock_head_index);
-				}
 			}
 		#endif
 	}
 
-	#endif
+
 
 	void fill_skipblock(const element_type &element, const aligned_pointer_type location, const skipfield_pointer_type skipfield_pointer, const skipfield_type size)
 	{
@@ -1396,8 +1385,6 @@ private:
 		#ifdef PLF_EXCEPTIONS_SUPPORT
 			if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
 			{
-				const skipfield_type prev_free_list_node = *pointer_cast<skipfield_pointer_type>(location); // in case of exception, grabbing indexes before free_list node is reused
-
 				do
 				{
 					try
@@ -1406,7 +1393,7 @@ private:
 					}
 					catch (...)
 					{
-						recover_from_partial_skipblock_fill(location, current_location, skipfield_pointer, prev_free_list_node);
+						recover_from_partial_skipblock_fill(location, current_location, skipfield_pointer);
 						throw;
 					}
 				} while (++current_location != fill_end);
@@ -1540,7 +1527,7 @@ public:
 			// Mark buckets as used
 			end_iterator.group_pointer->erased_elements.reset_range(pos, pos + group_remainder);
 
-			end_iterator.group_pointer->size += end_iterator.group_pointer->size;
+			end_iterator.group_pointer->size += group_remainder;
 
 			if (size == group_remainder) // ie. remaining capacity was >= remaining elements to be filled
 			{
@@ -1620,8 +1607,6 @@ private:
 		#ifdef PLF_EXCEPTIONS_SUPPORT
 			if constexpr ((!std::is_copy_constructible<element_type>::value && !std::is_nothrow_move_constructible<element_type>::value) || !std::is_nothrow_copy_constructible<element_type>::value)
 			{
-				const skipfield_type prev_free_list_node = *pointer_cast<skipfield_pointer_type>(location); // in case of exception, grabbing indexes before free_list node is reused
-
 				for (aligned_pointer_type current_location = location; current_location != fill_end; ++current_location)
 				{
 					try
@@ -1637,7 +1622,7 @@ private:
 					}
 					catch (...)
 					{
-						recover_from_partial_skipblock_fill(location, current_location, skipfield_pointer, prev_free_list_node);
+						recover_from_partial_skipblock_fill(location, current_location, skipfield_pointer);
 						throw;
 					}
 				}

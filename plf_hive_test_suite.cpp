@@ -783,7 +783,7 @@ int main()
 					}
 				}
 
-				unsigned int internal_loop_counter = 0;
+				// unsigned int internal_loop_counter = 0;
 
 				for (hive<int>::iterator the_iterator = i_hive.begin(); the_iterator != i_hive.end();)
 				{
@@ -797,7 +797,7 @@ int main()
 						++the_iterator;
 					}
 
-					++internal_loop_counter;
+					// ++internal_loop_counter;
 				}
 			}
 
@@ -2152,7 +2152,7 @@ int main()
 
 		{
 			title2("range/fill insert partial recovery tests");
-			
+
 			hive<exceptions_test> i_hive;
 			exceptions_test input_data[10] = {6, 6, 6, 6, 4, 6, 6, 6, 6, 1};
 
@@ -2162,7 +2162,7 @@ int main()
 			}
 			catch(...)
 			{} // do nothing
-			
+
 			int accumulator = 0;
 			for (hive<exceptions_test>::iterator current = i_hive.begin(); current != i_hive.end(); ++current)
 			{
