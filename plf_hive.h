@@ -1774,7 +1774,7 @@ public:
 		range_insert(first, static_cast<size_type>(std::distance(first, last)));
 	}
 
-	#if 0
+
 
 	// Range insert, move_iterator overload:
 
@@ -1784,7 +1784,7 @@ public:
 		range_insert(first, static_cast<size_type>(std::distance(first.base(), last.base())));
 	}
 
-	#endif
+
 
 	// Initializer-list insert:
 
@@ -1793,7 +1793,7 @@ public:
 		range_insert(element_list.begin(), static_cast<size_type>(element_list.size()));
 	}
 
-	#if 0
+
 
 	template<compatible_range<element_type> range_type>
 	void insert_range(range_type &&the_range)
@@ -1801,7 +1801,7 @@ public:
 		range_insert(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-	#endif
+
 
 private:
 
@@ -2536,7 +2536,7 @@ public:
 		range_assign(first, static_cast<size_type>(std::distance(first, last)));
 	}
 
-	#if 0
+
 
 	// Range assign, move_iterator overload:
 
@@ -2546,7 +2546,7 @@ public:
 		range_assign(first, static_cast<size_type>(std::distance(first.base(),last.base())));
 	}
 
-	#endif
+
 
 	// Initializer-list assign:
 
@@ -2555,7 +2555,7 @@ public:
 		range_assign(element_list.begin(), static_cast<size_type>(element_list.size()));
 	}
 
-	#if 0
+
 
 	template<compatible_range<element_type> range_type>
 	void assign_range(range_type &&the_range)
@@ -2563,7 +2563,7 @@ public:
 		range_assign(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-	#endif
+
 
 	[[nodiscard]] bool empty() const noexcept
 	{
