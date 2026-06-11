@@ -440,7 +440,7 @@ private:
 		}
 	}
 
-
+	#if 0
 
 	template <class iterator_type>
 	void reserve_and_range_fill(const size_type size, const iterator_type it)
@@ -453,7 +453,7 @@ private:
 		}
 	}
 
-
+	#endif
 
 public:
 
@@ -463,7 +463,7 @@ public:
 		return hive_limits(static_cast<size_t>(block_capacity_default_min()), static_cast<size_t>(block_capacity_default_max()));
 	}
 
-
+	#if 0
 
 	// Default constructors:
 
@@ -487,7 +487,7 @@ public:
 		hive(allocator_type())
 	{}
 
-
+	#endif
 
 	constexpr hive(const hive_limits block_limits, const allocator_type &alloc):
 		allocator_type(alloc),
@@ -511,7 +511,7 @@ public:
 		hive(block_limits, allocator_type())
 	{}
 
-
+	#if 0
 
 	// Copy constructors:
 
@@ -722,7 +722,7 @@ public:
 		hive(plf::ranges::from_range, std::move(rg), block_capacity_default_limits(), alloc)
 	{}
 
-
+	#endif
 
 	// Everything else:
 
@@ -868,7 +868,7 @@ private:
 		deallocate_group(the_group);
 	}
 
-
+	#if 0
 
 	constexpr void destroy_element(const aligned_pointer_type element) noexcept
 	{
@@ -911,7 +911,7 @@ private:
 		deallocate_group(begin_iterator.group_pointer);
 	}
 
-
+	#endif
 
 	void destroy_all_data() noexcept
 	{
@@ -991,7 +991,7 @@ private:
 		}
 	}
 
-
+	#if 0
 
 	void edit_free_list_prev(const aligned_pointer_type location, const skipfield_type value) noexcept // Write to the 'previous erased element' index in the erased element memory location
 	{
@@ -1014,7 +1014,7 @@ private:
 		edit_free_list(converted_location + 1, std::numeric_limits<skipfield_type>::max());
 	}
 
-
+	#endif
 
 	void reset() noexcept
 	{
@@ -1253,7 +1253,7 @@ private:
 
 public:
 
-
+	#if 0
 	template<typename... arguments>
 	iterator emplace(arguments &&... parameters)
 	{
@@ -1268,14 +1268,14 @@ public:
 		return emplace_implementation<0>(std::forward<arguments>(parameters) ...);
 	}
 
-
+	#endif
 
 	iterator insert(const element_type &element)
 	{
 		return emplace_implementation<1>(element);
 	}
 
-
+	#if 0
 
 	iterator insert([[maybe_unused]] const_iterator &hint, const element_type &element)
 	{
@@ -1296,10 +1296,10 @@ public:
 		return emplace_implementation<2>(std::move(element));
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	// For catch blocks in fill() and range_fill()
 	void recover_from_partial_fill()
 	{
@@ -1435,10 +1435,10 @@ private:
 		end_iterator.group_pointer->erased_elements.reset_range(0, size);
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	// Fill insert
 
 	void insert(size_type size, const element_type &element)
@@ -1543,10 +1543,10 @@ public:
 		fill_unused_groups(size, element, end_iterator.group_pointer->group_number + 1u, end_iterator.group_pointer, unused_groups_head);
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	template <class iterator_type>
 	void range_fill(iterator_type &it, const skipfield_type size)
 	{
@@ -1762,10 +1762,10 @@ private:
 		range_fill_unused_groups(size, it, end_iterator.group_pointer->group_number + 1u, end_iterator.group_pointer, unused_groups_head);
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	// Range insert:
 
 	template <class iterator_type>
@@ -1801,7 +1801,7 @@ public:
 		range_insert(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-
+	#endif
 
 private:
 
@@ -2028,7 +2028,7 @@ public:
 
 private:
 
-
+	#if 0
 	void partially_erase_group(const const_iterator &start, const aligned_pointer_type end)
 	{
 		// For the partial block erasures, we have to remove the existing skipblocks within the range from the intra-block free list of skipblocks. However if there're no erasures in the block, we can avoid doing so.
@@ -2101,11 +2101,11 @@ private:
 		total_size -= erasure_count;
 	}
 
-
+	#endif
 
 public:
 
-
+	#if 0
 	// Range erase:
 
 	iterator erase(const const_iterator &iterator1, const const_iterator &iterator2)	// if uninitialized/invalid iterators supplied, function could generate an exception. If iterator1 > iterator2, behaviour is undefined.
@@ -2231,11 +2231,11 @@ public:
 		return iterator(iterator2.group_pointer, iterator2.element_pointer, iterator2.skipfield_pointer);
 	}
 
-
+	#endif
 
 private:
 
-
+	#if 0
 	void prepare_groups_for_assign(const size_type size)
 	{
 		if constexpr (!std::is_trivially_destructible<element_type>::value) destroy_remainder(begin_iterator);
@@ -2284,11 +2284,11 @@ private:
 		total_size = 0;
 	}
 
-
+	#endif
 
 public:
 
-
+	#if 0
 	// Fill assign:
 
 	void assign(size_type size, const element_type &element)
@@ -2336,11 +2336,11 @@ public:
 		}
 	}
 
-
+	#endif
 
 private:
 
-
+	#if 0
 	void reset_group_range_assign(iterator &it) noexcept
 	{
 		std::memset(std::to_address(it.group_pointer->skipfield), 0, it.group_pointer->capacity * sizeof(skipfield_type));
@@ -2524,10 +2524,10 @@ private:
 		}
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	// Range assign:
 
 	template <class iterator_type>
@@ -2563,7 +2563,7 @@ public:
 		range_assign(std::ranges::begin(the_range), static_cast<size_type>(std::ranges::distance(the_range)));
 	}
 
-
+	#endif
 
 	[[nodiscard]] bool empty() const noexcept
 	{
@@ -2591,7 +2591,7 @@ public:
 		return total_capacity;
 	}
 
-
+	#if 0
 
 	#ifdef PLF_BENCH_H
 		size_type memory() const noexcept // Used for checking memory use during benchmarking
@@ -2609,10 +2609,10 @@ public:
 		}
 	#endif
 
-
+	#endif
 
 private:
-
+	#if 0
 	// get all elements contiguous in memory and shrink to fit, remove erasures and free lists. Invalidates all iterators and pointers to elements.
 	void consolidate(const skipfield_type new_min, const skipfield_type new_max)
 	{
@@ -2632,11 +2632,11 @@ private:
 		*this = std::move(temp);
 	}
 
-
+	#endif
 
 public:
 
-
+	#if 0
 	void reshape(const plf::hive_limits block_limits)
 	{
 		check_capacities_conformance(block_limits);
@@ -2724,14 +2724,14 @@ public:
 		return hive_limits(static_cast<size_t>(min_block_capacity), static_cast<size_t>(max_block_capacity));
 	}
 
-
+	#endif
 
 	static constexpr hive_limits block_capacity_hard_limits() noexcept
 	{
 		return hive_limits(3, std::min(static_cast<size_t>(std::numeric_limits<skipfield_type>::max()), max_size_static()));
 	}
 
-
+	#if 0
 
 	void clear() noexcept
 	{
@@ -2780,10 +2780,10 @@ public:
 		return *this;
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	void move_assign(hive &&source) noexcept(std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value || std::allocator_traits<allocator_type>::is_always_equal::value)
 	{
 		destroy_all_data();
@@ -2815,10 +2815,10 @@ private:
 		}
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	// Move assignment
 	hive & operator = (hive &&source) noexcept(std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value || std::allocator_traits<allocator_type>::is_always_equal::value)
 	{
@@ -3114,10 +3114,10 @@ public:
 		unused_groups_head = first_unused_group;
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	template <bool is_const>
 	hive_iterator<is_const> get_it(const pointer element_pointer) const noexcept
 	{
@@ -3147,10 +3147,10 @@ private:
 		return end_iterator;
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	iterator get_iterator(const pointer element_pointer) noexcept
 	{
 		return get_it<false>(element_pointer);
@@ -3170,10 +3170,10 @@ public:
 		return static_cast<allocator_type>(*this);
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	void source_blocks_incompatible()
 	{
 		#ifdef PLF_EXCEPTIONS_SUPPORT
@@ -3183,10 +3183,10 @@ private:
 		#endif
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	void splice(hive &source)
 	{
 		// Process: if there are unused memory spaces at the end of the current back group of the chain, convert them
@@ -3377,10 +3377,10 @@ public:
 		splice(std::move(source));
 	}
 
-
+	#endif
 
 private:
-
+	#if 0
 	struct item_index_tuple
 	{
 		pointer original_location;
@@ -3436,10 +3436,10 @@ private:
 		return nullptr;
 	}
 
-
+	#endif
 
 public:
-
+	#if 0
 	template <class comparison_function = std::less<element_type>>
 	void sort(comparison_function compare = comparison_function())
 	{
@@ -3652,7 +3652,7 @@ public:
 		}
 	}
 
-
+	#endif
 
 	// Iterators:
 	template <bool is_const>
@@ -3926,7 +3926,7 @@ public:
 
 
 		// Advance implementation:
-
+		#if 0
 		void advance(difference_type distance) // Cannot be noexcept due to the possibility of an uninitialized iterator
 		{
 			assert(group_pointer != nullptr); // covers uninitialized colony_iterator && empty group
@@ -4152,11 +4152,11 @@ public:
 				}
 			}
 		}
-
+		#endif
 
 
 		// distance implementation:
-
+		#if 0
 		difference_type distance(const hive_iterator &last) const
 		{
 			// Code logic:
@@ -4227,6 +4227,7 @@ public:
 
 			return distance;
 		}
+		#endif
 	}; // hive_iterator
 
 

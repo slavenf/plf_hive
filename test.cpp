@@ -8,7 +8,7 @@
 template <typename Container, typename Size>
 auto nth(const Container& c, Size pos)
 {
-    #if 1
+    #if 0
 
     return std::next(c.begin(), pos);
 
@@ -29,7 +29,7 @@ auto nth(const Container& c, Size pos)
 template <typename Container, typename Size>
 auto rnth(const Container& c, Size pos)
 {
-    #if 1
+    #if 0
 
     return std::next(c.rbegin(), pos);
 
@@ -47,17 +47,39 @@ auto rnth(const Container& c, Size pos)
     #endif
 }
 
+template <typename Iterator>
+int calculate_distance(Iterator it1, Iterator it2)
+{
+    #if 0
+
+    return std::distance(it1, it2);
+
+    #else
+
+    int dist = 0;
+
+    while (it1 != it2)
+    {
+        ++it1;
+        ++dist;
+    }
+
+    return dist;
+
+    #endif
+}
+
 template <typename Container>
 bool check_iterator_distances(const Container& c)
 {
     for (int i = 0; i < int(c.size()); ++i)
     {
-        if (std::distance(nth(c, i), c.cend()) != int(c.size()) - i)
+        if (calculate_distance(nth(c, i), c.cend()) != int(c.size()) - i)
         {
             return false;
         }
 
-        if (std::distance(rnth(c, i), c.crend()) != int(c.size()) - i)
+        if (calculate_distance(rnth(c, i), c.crend()) != int(c.size()) - i)
         {
             return false;
         }
