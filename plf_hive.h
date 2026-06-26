@@ -4018,10 +4018,11 @@ public:
 
 
 		// Advance implementation:
-		#if 0
 		void advance(difference_type distance) // Cannot be noexcept due to the possibility of an uninitialized iterator
 		{
 			assert(group_pointer != nullptr); // covers uninitialized colony_iterator && empty group
+
+			#if 0 // OLD
 
 			// Now, run code based on the nature of the distance type - negative, positive or zero:
 			if (distance > 0) // ie. +=
@@ -4243,14 +4244,34 @@ public:
 					element_pointer = to_aligned_pointer(group_pointer->elements) + (skipfield_pointer - group_pointer->skipfield);
 				}
 			}
+
+			#else // NEW
+
+			if (distance > 0)
+			{
+				do
+				{
+					++*this;
+				} while (--distance != 0);
+			}
+			else if (distance < 0)
+			{
+				do
+				{
+					--*this;
+				} while (++distance != 0);
+			}
+
+			#endif // OLD/NEW
 		}
-		#endif
+
 
 
 		// distance implementation:
-		#if 0
 		difference_type distance(const hive_iterator &last) const
 		{
+			#if 0 // OLD
+
 			// Code logic:
 			// If iterators are the same, return 0
 			// If they are not pointing to elements in the same group, process the intermediate groups and add distances,
@@ -4318,8 +4339,31 @@ public:
 			}
 
 			return distance;
+
+			#else // NEW
+
+			assert(!(group_pointer == nullptr) && !(last.group_pointer == nullptr));  // Check that they are both initialized
+
+			if (last.element_pointer == element_pointer)
+			{
+				return 0;
+			}
+
+			difference_type distance = 0;
+
+			hive_iterator current(*this);
+
+			do
+			{
+				++current;
+				++distance;
+			}
+			while (current != last);
+
+			return distance;
+
+			#endif // OLD/NEW
 		}
-		#endif
 	}; // hive_iterator
 
 

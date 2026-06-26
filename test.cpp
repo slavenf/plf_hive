@@ -8,7 +8,7 @@
 template <typename Container, typename Size>
 auto nth(const Container& c, Size pos)
 {
-    #if 0
+    #if 1
 
     return std::next(c.begin(), pos);
 
@@ -29,7 +29,7 @@ auto nth(const Container& c, Size pos)
 template <typename Container, typename Size>
 auto rnth(const Container& c, Size pos)
 {
-    #if 0
+    #if 1
 
     return std::next(c.rbegin(), pos);
 
@@ -50,7 +50,7 @@ auto rnth(const Container& c, Size pos)
 template <typename Iterator>
 int calculate_distance(Iterator it1, Iterator it2)
 {
-    #if 0
+    #if 1
 
     return std::distance(it1, it2);
 
