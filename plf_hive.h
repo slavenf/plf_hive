@@ -3801,6 +3801,8 @@ public:
 		{
 			assert(group_pointer != nullptr); // covers uninitialised hive_iterator
 
+			#if 0 // OLD
+
 			#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__) // This version creates faster release code under MSVC in some scenarios, but not other compilers
 				element_pointer += *(++skipfield_pointer) + 1;
 				skipfield_pointer += *skipfield_pointer;
@@ -3829,6 +3831,38 @@ public:
 				skipfield_pointer += skip;
 			#endif
 
+			#else // NEW
+
+			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
+			const aligned_pointer_type group_end = group_begin + group_pointer->capacity;
+
+			const std::size_t pos = element_pointer - group_begin;
+
+			const std::size_t next_pos = pos + 1u;
+
+			skipfield_type skip = 0;
+
+			if (next_pos != group_pointer->capacity && group_pointer->erased_elements.test(next_pos))
+			{
+				skip = *pointer_cast<skipfield_pointer_type>(element_pointer + 1);
+			}
+
+			element_pointer += static_cast<size_type>(skip) + 1u;
+
+			if (element_pointer == group_end && group_pointer->next_group != nullptr)
+			{
+				group_pointer = group_pointer->next_group;
+
+				element_pointer = to_aligned_pointer(group_pointer->elements);
+
+				if (group_pointer->erased_elements.test(0))
+				{
+					element_pointer += *pointer_cast<skipfield_pointer_type>(element_pointer);
+				}
+			}
+
+			#endif // OLD/NEW
+
 			return *this;
 		}
 
@@ -3847,6 +3881,8 @@ public:
 		{
 			assert(group_pointer != nullptr);
 
+			#if 0 // OLD
+
 			if (--skipfield_pointer >= group_pointer->skipfield) // ie. not already at beginning of group prior to decrementation
 			{
 				element_pointer -= static_cast<size_type>(*skipfield_pointer) + 1u;
@@ -3858,6 +3894,46 @@ public:
 			const skipfield_type skip = *skipfield;
 			element_pointer = (to_aligned_pointer(group_pointer->skipfield) - 1) - skip;
 			skipfield_pointer = skipfield - skip;
+
+			#else // NEW
+
+			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
+
+			const std::size_t pos = element_pointer - group_begin;
+
+			if (pos != 0)
+			{
+				const std::size_t previous_pos = pos - 1u;
+
+				if (group_pointer->erased_elements.test(previous_pos))
+				{
+					const skipfield_type skip = *pointer_cast<skipfield_pointer_type>(element_pointer - 1);
+
+					if (skip != pos)
+					{
+						element_pointer -= static_cast<size_type>(skip) + 1u;
+						return *this;
+					}
+				}
+				else
+				{
+					--element_pointer;
+					return *this;
+				}
+			}
+
+			group_pointer = group_pointer->previous_group;
+
+			const std::size_t last_pos = group_pointer->capacity - 1u;
+
+			element_pointer = to_aligned_pointer(group_pointer->elements) + last_pos;
+
+			if (group_pointer->erased_elements.test(last_pos))
+			{
+				element_pointer -= *pointer_cast<skipfield_pointer_type>(element_pointer);
+			}
+
+			#endif // OLD/NEW
 
 			return *this;
 		}
