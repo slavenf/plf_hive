@@ -361,21 +361,21 @@ private:
 				*pointer_cast<skipfield_pointer_type>(element) = 0;
 			}
 		}
+
+
+
+		aligned_pointer_type begin() const noexcept
+		{
+			return to_aligned_pointer(elements);
+		}
+
+
+
+		aligned_pointer_type end() const noexcept
+		{
+			return to_aligned_pointer(elements) + capacity;
+		}
 	};
-
-
-
-	static aligned_pointer_type group_begin(const group_pointer_type group) noexcept
-	{
-		return to_aligned_pointer(group->elements);
-	}
-
-
-
-	static aligned_pointer_type group_end(const group_pointer_type group) noexcept
-	{
-		return group_begin(group) + group->capacity;
-	}
 
 
 
@@ -388,7 +388,7 @@ private:
 
 	static aligned_pointer_type first_non_erased_element(const group_pointer_type group) noexcept
 	{
-		const aligned_pointer_type element = group_begin(group);
+		const aligned_pointer_type element = group->begin();
 		return group->erased_elements.test(0) ? element + *skipfield_at(element) : element;
 	}
 
@@ -954,7 +954,7 @@ private:
 					while (begin_iterator.group_pointer != end_iterator.group_pointer) // Erase elements without bothering to update skipfield - much faster:
 					{
 						const group_pointer_type next_group = begin_iterator.group_pointer->next_group;
-						destroy_dealloc_begin_group(group_end(begin_iterator.group_pointer));
+						destroy_dealloc_begin_group(begin_iterator.group_pointer->end());
 						begin_iterator.group_pointer = next_group;
 						begin_iterator.element_pointer = first_non_erased_element(next_group);
 					}
@@ -978,7 +978,7 @@ private:
 	void initialize(const skipfield_type first_group_size)
 	{
 		end_iterator.group_pointer = begin_iterator.group_pointer = allocate_new_group(first_group_size);
-		end_iterator.element_pointer = begin_iterator.element_pointer = group_begin(begin_iterator.group_pointer);
+		end_iterator.element_pointer = begin_iterator.element_pointer = begin_iterator.group_pointer->begin();
 	}
 
 
@@ -1136,7 +1136,7 @@ private:
 		{
 			if (erasure_groups_head == nullptr)
 			{
-				if (end_iterator.element_pointer != group_end(end_iterator.group_pointer))
+				if (end_iterator.element_pointer != end_iterator.group_pointer->end())
 				{
 					// Construct element at the unoccupied bucket - it is always end_iterator in this case
 					construct_element(end_iterator.element_pointer, std::forward<arguments>(parameters) ...);
@@ -1191,7 +1191,7 @@ private:
 				}
 
 				// Iterator to the inserted element
-				const iterator it(next_group, group_begin(next_group));
+				const iterator it(next_group, next_group->begin());
 
 				// Index of the bucket where the element is inserted - it is always zero in this case
 				constexpr std::size_t pos = 0;
@@ -1202,7 +1202,7 @@ private:
 				// Update end_iterator and total_size
 				end_iterator.group_pointer->next_group = next_group;
 				end_iterator.group_pointer = next_group;
-				end_iterator.element_pointer = group_begin(next_group) + 1;
+				end_iterator.element_pointer = next_group->begin() + 1;
 				++total_size;
 
 				return it;
@@ -1216,7 +1216,7 @@ private:
 				const iterator it
 				(
 					erasure_groups_head,
-					group_begin(erasure_groups_head) + pos
+					erasure_groups_head->begin() + pos
 				);
 
 				const skipfield_type skipblock_size = *skipfield_at(it.element_pointer);
@@ -1879,7 +1879,7 @@ private:
 		group_pointer->reset(0, nullptr, nullptr, 0);
 
 		// Reset begin and end iterators:
-		end_iterator.element_pointer = begin_iterator.element_pointer = group_begin(group_pointer);
+		end_iterator.element_pointer = begin_iterator.element_pointer = group_pointer->begin();
 	}
 
 
@@ -1901,7 +1901,7 @@ public:
 		assert(it.element_pointer != end_iterator.element_pointer); // ie. != end()
 
 		// Index of the bucket where the element was placed
-		const std::size_t pos = it.element_pointer - group_begin(it.group_pointer);
+		const std::size_t pos = it.element_pointer - it.group_pointer->begin();
 
 		assert(!it.group_pointer->erased_elements.test(pos)); // ie. element pointed to by iterator has not been erased previously
 
@@ -1970,7 +1970,7 @@ public:
 
 			iterator return_iterator(it.group_pointer, it.element_pointer + update_value);
 
-			if (return_iterator.element_pointer == group_end(it.group_pointer) && it.group_pointer != end_iterator.group_pointer)
+			if (return_iterator.element_pointer == it.group_pointer->end() && it.group_pointer != end_iterator.group_pointer)
 			{
 				return_iterator.group_pointer = it.group_pointer->next_group;
 				return_iterator.element_pointer = first_non_erased_element(return_iterator.group_pointer);
@@ -2038,7 +2038,7 @@ public:
 
 			it.group_pointer->previous_group->next_group = nullptr;
 			end_iterator.group_pointer = it.group_pointer->previous_group; // end iterator needs to be changed as element supplied was the back element of the hive
-			end_iterator.element_pointer = group_end(end_iterator.group_pointer);
+			end_iterator.element_pointer = end_iterator.group_pointer->end();
 
 			add_to_unused_groups_list(it.group_pointer);
 
