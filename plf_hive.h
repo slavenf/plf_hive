@@ -3665,7 +3665,6 @@ public:
 
 		group_pointer_type		group_pointer {nullptr};
 		aligned_pointer_type 	element_pointer {nullptr};
-		skipfield_pointer_type	skipfield_pointer {nullptr};
 
 	public:
 		struct hive_iterator_tag {};
@@ -3706,8 +3705,7 @@ public:
 		template <bool is_const_it = is_const, class = std::enable_if_t<is_const_it> >
 		hive_iterator(const hive_iterator<false> &source) noexcept:
 			group_pointer(source.group_pointer),
-			element_pointer(source.element_pointer),
-			skipfield_pointer(source.skipfield_pointer)
+			element_pointer(source.element_pointer)
 		{}
 
 
@@ -3719,8 +3717,7 @@ public:
 		template <bool is_const_it = is_const, class = std::enable_if_t<is_const_it> >
 		hive_iterator(hive_iterator<false> &&source) noexcept:
 			group_pointer(std::move(source.group_pointer)),
-			element_pointer(std::move(source.element_pointer)),
-			skipfield_pointer(std::move(source.skipfield_pointer))
+			element_pointer(std::move(source.element_pointer))
 		{}
 
 
@@ -3734,7 +3731,6 @@ public:
 		{
 			group_pointer = source.group_pointer;
 			element_pointer = source.element_pointer;
-			skipfield_pointer = source.skipfield_pointer;
 			return *this;
 		}
 
@@ -3749,7 +3745,6 @@ public:
 		{
 			group_pointer = std::move(source.group_pointer);
 			element_pointer = std::move(source.element_pointer);
-			skipfield_pointer = std::move(source.skipfield_pointer);
 			return *this;
 		}
 
@@ -3993,10 +3988,9 @@ public:
 
 	private:
 		// Used by cend(), erase() etc:
-		hive_iterator(const group_pointer_type group_p, const aligned_pointer_type element_p, const skipfield_pointer_type skipfield_p) noexcept:
+		hive_iterator(const group_pointer_type group_p, const aligned_pointer_type element_p) noexcept:
 			group_pointer(group_p),
-			element_pointer(element_p),
-			skipfield_pointer(skipfield_p)
+			element_pointer(element_p)
 		{}
 
 
