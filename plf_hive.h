@@ -375,6 +375,13 @@ private:
 		{
 			return to_aligned_pointer(elements) + capacity;
 		}
+
+
+
+		aligned_pointer_type first_non_erased() const noexcept
+		{
+			return erased_elements.test(0) ? begin() + *pointer_cast<skipfield_pointer_type>(begin()) : begin();
+		}
 	};
 
 
@@ -382,14 +389,6 @@ private:
 	static skipfield_pointer_type skipfield_at(const aligned_pointer_type element) noexcept
 	{
 		return pointer_cast<skipfield_pointer_type>(element);
-	}
-
-
-
-	static aligned_pointer_type first_non_erased_element(const group_pointer_type group) noexcept
-	{
-		const aligned_pointer_type element = group->begin();
-		return group->erased_elements.test(0) ? element + *skipfield_at(element) : element;
 	}
 
 
@@ -956,7 +955,7 @@ private:
 						const group_pointer_type next_group = begin_iterator.group_pointer->next_group;
 						destroy_dealloc_begin_group(begin_iterator.group_pointer->end());
 						begin_iterator.group_pointer = next_group;
-						begin_iterator.element_pointer = first_non_erased_element(next_group);
+						begin_iterator.element_pointer = next_group->first_non_erased();
 					}
 
 					destroy_dealloc_begin_group(end_iterator.element_pointer);
@@ -1973,7 +1972,7 @@ public:
 			if (return_iterator.element_pointer == it.group_pointer->end() && it.group_pointer != end_iterator.group_pointer)
 			{
 				return_iterator.group_pointer = it.group_pointer->next_group;
-				return_iterator.element_pointer = first_non_erased_element(return_iterator.group_pointer);
+				return_iterator.element_pointer = return_iterator.group_pointer->first_non_erased();
 			}
 
 			if (it.element_pointer == begin_iterator.element_pointer) begin_iterator = return_iterator; // If original iterator was first element in hive, update it's value with the next non-erased element:
@@ -2003,7 +2002,7 @@ public:
 			deallocate_group_remove_capacity(it.group_pointer);
 
 			// note: end iterator only needs to be changed if the deleted group was the final group in the chain ie. not in this case
-			begin_iterator.element_pointer = first_non_erased_element(begin_iterator.group_pointer);
+			begin_iterator.element_pointer = begin_iterator.group_pointer->first_non_erased();
 
 			return begin_iterator;
 		}
@@ -2027,7 +2026,7 @@ public:
 			}
 
 			// Return next group's first non-erased element:
-			return iterator(return_group, first_non_erased_element(return_group));
+			return iterator(return_group, return_group->first_non_erased());
 		}
 		else // this is a non-first group and the final group in the chain
 		{
