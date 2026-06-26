@@ -240,17 +240,17 @@ private:
 	};
 
 
-	// We combine the allocation of elements and skipfield into one allocation to save performance. This memory must be allocated as an aligned type with the same alignment as T in order for the elements to align with memory boundaries correctly (which won't happen if we allocate as char or uint_8). But the larger the sizeof in the type we use for allocation, the greater the chance of creating a lot of unused memory in the skipfield portion of the allocated block. So we create a type that is sizeof(alignof(T)), as in most cases alignof(T) < sizeof(T). If alignof(t) >= sizeof(t) this makes no difference.
+	// This memory must be allocated as an aligned type with the same alignment as T in order for the elements to align with memory boundaries correctly (which won't happen if we allocate as char or uint_8).
 	struct alignas(alignof(element_type)) aligned_allocation_struct
 	{
 	  char data[alignof(element_type)];
 	};
 
 
-	// Calculate the capacity of a group's elements+skipfield memory block when expressed in multiples of the value_type's alignment (rounding up).
+	// Calculate the capacity of a group's element memory block when expressed in multiples of the value_type's alignment (rounding up).
 	static size_type get_aligned_block_capacity(const skipfield_type elements_per_group) noexcept
 	{
-		return ((elements_per_group * (sizeof(aligned_element_struct) + sizeof(skipfield_type))) + sizeof(skipfield_type) + sizeof(aligned_allocation_struct) - 1) / sizeof(aligned_allocation_struct);
+		return ((elements_per_group * sizeof(aligned_element_struct)) + sizeof(aligned_allocation_struct) - 1) / sizeof(aligned_allocation_struct);
 	}
 
 
@@ -313,12 +313,10 @@ private:
 	// (1) Follows low-complexity jump-counting pattern rules as described here: archive.org/details/matt_bentley_-_the_low_complexity_jump-counting_pattern
 	// (2) Initialized to 0 by-default, which means 'non-erased' ie. either no element has ever been constructed there, or an element has been constructed there. Whereas non-zero means an element has been constructed there and subsequently erased. The value of the first and last non-zero nodes in a run of non-zero nodes determines jump length. See the paper for details.
 	// (3) This definition means we can bulk-initialize each group's skipfield to 0, rather than bulk-initialize to non-zero then subsequently change individual skipfield nodes to 0 upon insertion - which is obviously slower. Defining unconstructed elements as 0 has no impact on iteration since they're after end(). Note that this definition is violated slightly during splice: unconstructed element nodes at the end of the destination hive's back block will have their corresponding skipfield nodes flipped to 'erased' in order to make iteration work, because they will not longer be after end() once the source hive's blocks are appended.
-	// (4) There will always be one additional skipfield node allocated compared to the group's number of elements. This ensures a faster ++ iterator operation (fewer checks are required when it is present). The extra node is unused and always 0, but checked, and not having it will result in out-of-bounds memory errors.
 
 
 	struct group
 	{
-		skipfield_pointer_type					skipfield;			// Skipfield storage. The element and skipfield arrays are allocated contiguously, in a single allocation, in this implementation, hence the skipfield pointer also functions as a 'one-past-end' pointer for the elements array. This is present before elements in the group struct as it is referenced constantly by the ++ operator, hence having it first results in a minor performance increase.
 		group_pointer_type						next_group;			// Next group in the linked list of all groups. nullptr if no following group. 2nd in struct because it is so frequently used during iteration.
 		const aligned_struct_pointer_type	elements;			// Element storage.
 		group_pointer_type						previous_group;		// Previous group in the linked list of all groups. nullptr if no preceding group.
@@ -341,8 +339,10 @@ private:
 			erasures_list_previous_group(nullptr),
 			group_number((previous == nullptr) ? 0 : previous->group_number + 1u)
 		{
-			skipfield = pointer_cast<skipfield_pointer_type>(to_aligned_pointer(elements) + elements_per_group);
-			std::memset(std::to_address(skipfield), 0, sizeof(skipfield_type) * (static_cast<size_type>(elements_per_group) + 1u));
+			for (aligned_pointer_type element = to_aligned_pointer(elements), end = element + elements_per_group; element != end; ++element)
+			{
+				*pointer_cast<skipfield_pointer_type>(element) = 0;
+			}
 		}
 
 
@@ -357,7 +357,10 @@ private:
 			erasures_list_previous_group = nullptr;
 			group_number = group_num;
 
-			std::memset(std::to_address(skipfield), 0, sizeof(skipfield_type) * static_cast<size_type>(capacity)); // capacity + 1 is not necessary here as the final skipfield node is never written to after initialization
+			for (aligned_pointer_type element = to_aligned_pointer(elements) + increment, end = to_aligned_pointer(elements) + capacity; element != end; ++element)
+			{
+				*pointer_cast<skipfield_pointer_type>(element) = 0;
+			}
 		}
 	};
 
