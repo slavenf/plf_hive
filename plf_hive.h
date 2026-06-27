@@ -1274,7 +1274,9 @@ private:
 
 
 
+
 public:
+
 
 	template<typename... arguments>
 	iterator emplace(arguments &&... parameters)
@@ -2122,6 +2124,7 @@ private:
 
 public:
 
+
 	// Range erase:
 
 	iterator erase(const const_iterator &iterator1, const const_iterator &iterator2)	// if uninitialized/invalid iterators supplied, function could generate an exception. If iterator1 > iterator2, behaviour is undefined.
@@ -2247,6 +2250,7 @@ public:
 
 private:
 
+
 	void prepare_groups_for_assign(const size_type size)
 	{
 		if constexpr (!std::is_trivially_destructible<element_type>::value) destroy_remainder(begin_iterator);
@@ -2297,6 +2301,7 @@ private:
 
 
 public:
+
 
 	// Fill assign:
 
@@ -2652,6 +2657,7 @@ private:
 
 
 public:
+
 
 	void reshape(const plf::hive_limits block_limits)
 	{
@@ -3565,6 +3571,7 @@ public:
 
 
 
+
 	template <class comparison_function = std::equal_to<element_type>>
 	size_type unique(comparison_function compare = comparison_function())
 	{
@@ -3600,6 +3607,7 @@ public:
 
 		return count;
 	}
+
 
 
 
@@ -4005,6 +4013,7 @@ public:
 
 
 		// Advance implementation:
+
 		void advance(difference_type distance) // Cannot be noexcept due to the possibility of an uninitialized iterator
 		{
 			assert(group_pointer != nullptr); // covers uninitialized colony_iterator && empty group
@@ -4226,6 +4235,7 @@ public:
 
 
 		// distance implementation:
+
 		difference_type distance(const hive_iterator &last) const
 		{
 			// Code logic:
