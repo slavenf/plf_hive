@@ -24,25 +24,12 @@
 
 #include "plf_bitset_stack1b.h" // This header undefs PLF_EXCEPTIONS_SUPPORT so it must be exactly here
 
-#define PLF_EXCEPTIONS_SUPPORT
-
-#if ((defined(__clang__) || defined(__GNUC__)) && !defined(__EXCEPTIONS)) || (defined(_MSC_VER) && !defined(_CPPUNWIND))
-	#undef PLF_EXCEPTIONS_SUPPORT
-	#include <exception> // std::terminate
-#endif
-
-#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__)
-	// Suppress incorrect (unfixed MSVC bug at warning level 4) warnings re: constant expressions in constexpr-if statements
-	#pragma warning ( push )
-	#pragma warning ( disable : 4127 )
-#endif
-
-#include <algorithm> // std::fill_n, std::sort, std::swap
+#include <algorithm> // std::sort, std::swap
 #include <cstdint> // uint_least16_t etc
 #include <cassert>	// assert
 #include <cstring>	// memset, memcpy, size_t
 #include <limits>  // std::numeric_limits
-#include <memory> // std::allocator, std::to_address
+#include <memory> // std::allocator_traits, std::to_address
 #include <iterator> // std::bidirectional_iterator_tag, iterator_traits, make_move_iterator, std::distance for range insert
 #include <stdexcept> // std::length_error, std::out_of_range
 #include <functional> // std::less
@@ -54,6 +41,16 @@
 #include <concepts>
 #include <compare> // std::strong_ordering
 #include <ranges>
+
+
+
+#define PLF_EXCEPTIONS_SUPPORT
+
+#if ((defined(__clang__) || defined(__GNUC__)) && !defined(__EXCEPTIONS)) || (defined(_MSC_VER) && !defined(_CPPUNWIND))
+	#undef PLF_EXCEPTIONS_SUPPORT
+	#include <exception> // std::terminate
+#endif
+
 
 
 
@@ -94,10 +91,11 @@ namespace plf
 		struct allocator_has_construct< allocator_type, std::void_t<decltype(std::declval<allocator_type&>().construct(std::declval<int*>(), std::declval<int>()))> > : std::true_type {};
 
 
-		template <class allocator_type, class iterator_type>
-		void uninitialized_copy(iterator_type begin, const iterator_type end, iterator_type destination, [[maybe_unused]] allocator_type &alloc)
+
+		template <class allocator_type, class iterator_type, class iterator_type2>
+		void uninitialized_copy(iterator_type begin, const iterator_type end, iterator_type2 destination, [[maybe_unused]] allocator_type &alloc)
 		{
-			if constexpr (!allocator_has_construct<allocator_type>::value) // If allocator has no construct method, we can take advantage of optimized routines for POD types
+			if constexpr (!allocator_has_construct<allocator_type>::value) // If allocator has no construct method, we can take advantage of optimized routines for POD types in library implementation:
 			{
 				std::uninitialized_copy(begin, end, destination);
 			}
@@ -105,23 +103,23 @@ namespace plf
 			{
 				for (; begin != end; ++begin, ++destination)
 				{
-					std::allocator_traits<allocator_type>::construct(alloc, &*destination, *begin);
+					std::allocator_traits<allocator_type>::construct(alloc, std::to_address(destination), *begin);
 				}
 			}
 		}
 
 
 
-		template <class allocator_type, class iterator_type>
-		void uninitialized_move(iterator_type begin, const iterator_type end, iterator_type destination, allocator_type &alloc)
+		template <class allocator_type, class iterator_type, class iterator_type2>
+		void uninitialized_move(iterator_type begin, const iterator_type end, iterator_type2 destination, allocator_type &alloc)
 		{
-			plf::uninitialized_copy(std::make_move_iterator(begin), std::make_move_iterator(end), destination, alloc);
+			uninitialized_copy(std::make_move_iterator(begin), std::make_move_iterator(end), destination, alloc);
 		}
 
 
 
 		template <class allocator_type, class iterator_type, class element_type>
-		void uninitialized_fill_n(iterator_type begin, std::size_t size, const element_type &element, [[maybe_unused]]	allocator_type &alloc)
+		void uninitialized_fill_n(iterator_type begin, std::size_t size, const element_type &element, [[maybe_unused]] allocator_type &alloc)
 		{
 			if constexpr (!allocator_has_construct<allocator_type>::value)
 			{
@@ -131,7 +129,7 @@ namespace plf
 			{
 				for (; size != 0; ++begin, --size)
 				{
-					std::allocator_traits<allocator_type>::construct(alloc, &*begin, element);
+					std::allocator_traits<allocator_type>::construct(alloc, std::to_address(begin), element);
 				}
 			}
 		}
@@ -177,6 +175,14 @@ namespace std
 	{
 		return first.distance(last);
 	}
+
+
+	template <plf::hive_iterator_concept it_type>
+	typename iterator_traits<it_type>::difference_type distance(const std::move_iterator<it_type> first, const std::move_iterator<it_type> last)
+	{
+		return first.base().distance(last.base());
+	}
+
 }
 
 
@@ -1017,30 +1023,7 @@ private:
 		}
 	}
 
-	#if 0
 
-	void edit_free_list_prev(const aligned_pointer_type location, const skipfield_type value) noexcept // Write to the 'previous erased element' index in the erased element memory location
-	{
-		edit_free_list(pointer_cast<skipfield_pointer_type>(location), value);
-	}
-
-
-
-	void edit_free_list_next(const aligned_pointer_type location, const skipfield_type value) noexcept // Ditto 'next'
-	{
-		edit_free_list(pointer_cast<skipfield_pointer_type>(location) + 1, value);
-	}
-
-
-
-	void edit_free_list_head(const aligned_pointer_type location, const skipfield_type value) noexcept
-	{
-		const skipfield_pointer_type converted_location = pointer_cast<skipfield_pointer_type>(location);
-		edit_free_list(converted_location, value);
-		edit_free_list(converted_location + 1, std::numeric_limits<skipfield_type>::max());
-	}
-
-	#endif
 
 	void reset() noexcept
 	{
@@ -1344,13 +1327,27 @@ private:
 
 	void fill(const element_type &element, const skipfield_type size)
 	{
-		const aligned_pointer_type fill_end = end_iterator.element_pointer + size;
-
-		#ifdef PLF_EXCEPTIONS_SUPPORT
-			if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
+		if constexpr (std::is_nothrow_copy_constructible<element_type>::value)
+		{
+			if constexpr (sizeof(aligned_element_struct) != sizeof(element_type))
 			{
-				do
-				{
+				alignas (alignof(aligned_element_struct)) element_type aligned_copy = element; // to avoid potentially violating memory boundaries in line below, create an initial object copy of same (but aligned) type
+				plf::uninitialized_fill_n(end_iterator.element_pointer, size, *to_aligned_pointer(&aligned_copy), static_cast<allocator_type &>(*this));
+			}
+			else
+			{
+				plf::uninitialized_fill_n(pointer_cast<pointer>(end_iterator.element_pointer), size, element, static_cast<allocator_type &>(*this));
+			}
+
+			end_iterator.element_pointer += size;
+		}
+		else
+		{
+			const aligned_pointer_type fill_end = end_iterator.element_pointer + size;
+
+			do
+			{
+				#ifdef PLF_EXCEPTIONS_SUPPORT
 					try
 					{
 						construct_element(end_iterator.element_pointer, element);
@@ -1360,14 +1357,9 @@ private:
 						recover_from_partial_fill();
 						throw;
 					}
-				} while (++end_iterator.element_pointer != fill_end);
-			}
-			else
-		#endif
-		{
-			do
-			{
-				construct_element(end_iterator.element_pointer, element);
+				#else
+					construct_element(end_iterator.element_pointer, element);
+				#endif
 			} while (++end_iterator.element_pointer != fill_end);
 		}
 
@@ -1376,8 +1368,8 @@ private:
 
 
 
-	// For catch blocks in range_fill_skipblock and fill_skipblock - update existing skipblock and free-list indexes to reflect partially-reused skipblock:
-	void recover_from_partial_skipblock_fill(const aligned_pointer_type location, const aligned_pointer_type current_location, const skipfield_type skipblock_size)
+	// For catch blocks in range_fill_skipblock and fill_skipblock - update existing skipblock and erased-element metadata to reflect partially-reused skipblock:
+	void recover_from_partial_skipblock_fill([[maybe_unused]] const aligned_pointer_type location, [[maybe_unused]] const aligned_pointer_type current_location, const skipfield_type skipblock_size)
 	{
 		#ifdef PLF_EXCEPTIONS_SUPPORT
 			if constexpr ((!std::is_copy_constructible<element_type>::value && !std::is_nothrow_move_constructible<element_type>::value) || !std::is_nothrow_copy_constructible<element_type>::value) // to avoid unnecessary codegen
@@ -1398,14 +1390,25 @@ private:
 
 	void fill_skipblock(const element_type &element, const aligned_pointer_type location, const skipfield_type skipblock_size, const skipfield_type size)
 	{
-		const aligned_pointer_type fill_end = location + size;
-		aligned_pointer_type current_location = location;
-
-		#ifdef PLF_EXCEPTIONS_SUPPORT
-			if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
+		if constexpr (std::is_nothrow_copy_constructible<element_type>::value)
+		{
+			if constexpr (sizeof(aligned_element_struct) != sizeof(element_type))
 			{
-				do
-				{
+				alignas (alignof(aligned_element_struct)) element_type aligned_copy = element;
+				plf::uninitialized_fill_n(location, size, *to_aligned_pointer(&aligned_copy), static_cast<allocator_type &>(*this));
+			}
+			else
+			{
+				plf::uninitialized_fill_n(pointer_cast<pointer>(location), size, element, static_cast<allocator_type &>(*this));
+			}
+		}
+		else
+		{
+			const aligned_pointer_type fill_end = location + size;
+
+			for (aligned_pointer_type current_location = location; current_location != fill_end; ++current_location)
+			{
+				#ifdef PLF_EXCEPTIONS_SUPPORT
 					try
 					{
 						construct_element(current_location, element);
@@ -1415,15 +1418,10 @@ private:
 						recover_from_partial_skipblock_fill(location, current_location, skipblock_size);
 						throw;
 					}
-				} while (++current_location != fill_end);
+				#else
+					construct_element(current_location, element);
+				#endif
 			}
-			else
-		#endif
-		{
-			do
-			{
-				construct_element(current_location, element);
-			} while (++current_location != fill_end);
 		}
 
 		erasure_groups_head->size += size;
@@ -1716,7 +1714,7 @@ private:
 			// Index of the first unused bucket
 			const std::size_t pos = erasure_groups_head->erased_elements.first_one();
 
-			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;//erasure_groups_head->free_list_head;
+			const aligned_pointer_type element_pointer = to_aligned_pointer(erasure_groups_head->elements) + pos;
 			const skipfield_type skipblock_size = *skipfield_at(element_pointer);
 
 			if (erasure_groups_head == begin_iterator.group_pointer && element_pointer < begin_iterator.element_pointer)
@@ -1797,13 +1795,13 @@ public:
 
 
 
-	// Range insert, move_iterator overload:
+	// Range insert, move_iterator overload (allows hive to use the faster internal overload for std::distance, otherwise the standard libraries will use the bidirectional std::distance overload):
 
-	template <class iterator_type>
-	void insert(const std::move_iterator<iterator_type> first, const std::move_iterator<iterator_type> last)
-	{
-		range_insert(first, static_cast<size_type>(std::distance(first.base(), last.base())));
-	}
+ 	template <class iterator_type>
+ 	void insert(const std::move_iterator<iterator_type> first, const std::move_iterator<iterator_type> last)
+ 	{
+ 		range_insert(first, static_cast<size_type>(std::distance(first.base(), last.base())));
+ 	}
 
 
 
@@ -2048,6 +2046,7 @@ public:
 
 
 private:
+
 
 	void partially_erase_group(const const_iterator &start, const aligned_pointer_type end)
 	{
@@ -2543,7 +2542,6 @@ private:
 			// Indicates we've reached the end of existing groups with elements, now can only reused unused groups or create new ones:
 			range_insert(it, size);
 		}
-
 	}
 
 
@@ -2560,7 +2558,7 @@ public:
 
 
 
-	// Range assign, move_iterator overload:
+	// Range assign, move_iterator overload (logic same as range insert, move_iterator):
 
 	template <class iterator_type>
 	void assign (const std::move_iterator<iterator_type> first, const std::move_iterator<iterator_type> last)
@@ -3475,26 +3473,19 @@ public:
 			}
 
 			const pointer end = sort_array + total_size;
-			pointer current_dest = sort_array;
 
-			if constexpr (!std::is_trivially_copyable<element_type>::value && std::is_move_assignable<element_type>::value)
+			if constexpr (!std::is_trivially_copy_constructible<element_type>::value && std::is_nothrow_move_constructible<element_type>::value)
 			{
-				for (iterator current = begin_iterator; current != end_iterator; ++current, ++current_dest)
-				{
-					std::allocator_traits<allocator_type>::construct(*this, current_dest, std::move(*current));
-				}
+				plf::uninitialized_move(begin_iterator, end_iterator, sort_array, static_cast<allocator_type &>(*this));
 			}
 			else
 			{
-				for (iterator current = begin_iterator; current != end_iterator; ++current, ++current_dest)
-				{
-					std::allocator_traits<allocator_type>::construct(*this, current_dest, *current);
-				}
+				plf::uninitialized_copy(begin_iterator, end_iterator, sort_array, static_cast<allocator_type &>(*this));
 			}
 
 			std::sort(sort_array, end, compare);
 
-			if constexpr (!std::is_trivially_copyable<element_type>::value && std::is_move_assignable<element_type>::value)
+			if constexpr (!std::is_trivially_copy_assignable<element_type>::value && std::is_nothrow_move_assignable<element_type>::value)
 			{
 				std::copy(std::make_move_iterator(sort_array), std::make_move_iterator(end), begin_iterator);
 			}
@@ -3697,18 +3688,21 @@ public:
 		friend reverse_iterator;
 		friend const_reverse_iterator;
 
-		template <hive_iterator_concept it_type, typename distance_type>
+
+		template <plf::hive_iterator_concept it_type, typename distance_type>
 		friend void std::advance(it_type &it, const distance_type distance);
 
-		template <hive_iterator_concept it_type>
+		template <plf::hive_iterator_concept it_type>
 		friend it_type std::next(it_type it, const typename std::iterator_traits<it_type>::difference_type distance);
 
-		template <hive_iterator_concept it_type>
+		template <plf::hive_iterator_concept it_type>
 		friend it_type std::prev(it_type it, const typename std::iterator_traits<it_type>::difference_type distance);
 
-		template <hive_iterator_concept it_type>
-		friend typename std::iterator_traits<it_type>::difference_type std::distance(const it_type first, const it_type last);
+		template <plf::hive_iterator_concept it_type>
+		friend typename std::iterator_traits<it_type>::difference_type std::distance(const std::move_iterator<it_type> first, const std::move_iterator<it_type> last);
 
+		template <plf::hive_iterator_concept it_type>
+		friend typename std::iterator_traits<it_type>::difference_type std::distance(const it_type first, const it_type last);
 
 
 		hive_iterator() noexcept = default;
@@ -4012,25 +4006,93 @@ public:
 
 
 
+		// Helper functions:
+
+		static aligned_pointer_type next_in_group(const group_pointer_type group, const aligned_pointer_type element) noexcept
+		{
+			const std::size_t next_index = static_cast<std::size_t>((element - group->begin()) + 1u);
+			const skipfield_type skip = (next_index != group->capacity && group->erased_elements.test(next_index)) ? *skipfield_at(element + 1) : 0;
+			return element + static_cast<size_type>(skip) + 1u;
+		}
+
+
+
+		static aligned_pointer_type previous_in_group(const group_pointer_type group, const aligned_pointer_type element) noexcept
+		{
+			const std::size_t previous_index = static_cast<std::size_t>((element - group->begin()) - 1u);
+			const skipfield_type skip = group->erased_elements.test(previous_index) ? *skipfield_at(element - 1) : 0;
+			return element - (static_cast<size_type>(skip) + 1u);
+		}
+
+
+
+		aligned_pointer_type logical_end_in_group() const noexcept
+		{
+			if (group_pointer->next_group != nullptr)
+			{
+				return group_pointer->end();
+			}
+			else if (group_pointer->erasures_list_previous_group == nullptr)
+			{
+				return group_pointer->begin() + group_pointer->size;
+			}
+
+			aligned_pointer_type current = group_pointer->first_non_erased();
+
+			for (skipfield_type remaining = group_pointer->size; remaining != 0; --remaining)
+			{
+				current = next_in_group(group_pointer, current);
+			}
+
+			return current;
+		}
+
+
+
+		// These 3 functions are used by advance:
+
+		void set_iterator_to_first_element_in_group() noexcept
+		{
+			element_pointer = group_pointer->first_non_erased();
+		}
+
+
+
+		void set_element_location_from_skipfield(const aligned_pointer_type new_element_location) noexcept
+		{
+			element_pointer = new_element_location;
+		}
+
+
+
+		void advance_from_group_beginning(skipfield_type distance) noexcept
+		{
+			if (group_pointer->erasures_list_previous_group == nullptr) // ie. if there are no erasures in the group
+			{
+				element_pointer = group_pointer->begin() + distance;
+			}
+			else if (distance == 0)
+			{
+				set_iterator_to_first_element_in_group();
+			}
+			else
+			{
+				set_iterator_to_first_element_in_group();
+
+				do
+				{
+					set_element_location_from_skipfield(next_in_group(group_pointer, element_pointer));
+				} while(--distance != 0);
+			}
+		}
+
+
+
 		// Advance implementation:
 
 		void advance(difference_type distance) // Cannot be noexcept due to the possibility of an uninitialized iterator
 		{
 			assert(group_pointer != nullptr); // covers uninitialized colony_iterator && empty group
-
-			const auto next_in_group = [](const group_pointer_type group, const aligned_pointer_type element) noexcept
-			{
-				const std::size_t next_index = static_cast<std::size_t>((element - group->begin()) + 1u);
-				const skipfield_type skip = (next_index != group->capacity && group->erased_elements.test(next_index)) ? *skipfield_at(element + 1) : 0;
-				return element + static_cast<size_type>(skip) + 1u;
-			};
-
-			const auto previous_in_group = [](const group_pointer_type group, const aligned_pointer_type element) noexcept
-			{
-				const std::size_t previous_index = static_cast<std::size_t>((element - group->begin()) - 1u);
-				const skipfield_type skip = group->erased_elements.test(previous_index) ? *skipfield_at(element - 1) : 0;
-				return element - (static_cast<size_type>(skip) + 1u);
-			};
 
 			// Now, run code based on the nature of the distance type - negative, positive or zero:
 			if (distance > 0) // ie. +=
@@ -4049,12 +4111,13 @@ public:
 
 				// Note: incrementing element_pointer is avoided until necessary to avoid needless calculations.
 
-				if (group_pointer->next_group == nullptr && element_pointer == group_pointer->end()) return; // Check if we're already beyond back of final block
+				if (group_pointer->next_group == nullptr && element_pointer == logical_end_in_group()) return; // Check if we're already beyond back of final block
 
 				// Special case for initial element pointer and initial group (we don't know how far into the group the element pointer is)
 				if (element_pointer != group_pointer->first_non_erased()) // ie. != first non-erased element in group - otherwise we skip this section and just treat the first block as we would an intermediary block
 				{
-					const difference_type distance_from_end = group_pointer->end() - element_pointer;
+					const aligned_pointer_type group_end = logical_end_in_group();
+					const difference_type distance_from_end = group_end - element_pointer;
 
 					if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 					{
@@ -4062,10 +4125,10 @@ public:
 						{
 							element_pointer += distance;
 							return;
-						}
-						else if (group_pointer->next_group == nullptr) // either we've reached end() or gone beyond it, so bound to back of block
+						} // distance >= distance_from_end
+						else if (group_pointer->next_group == nullptr) // back block, so either we're going to reach end() or go beyond it, so bound to back of block
 						{
-							element_pointer = group_pointer->end();
+							element_pointer = group_end;
 							return;
 						}
 						else
@@ -4075,11 +4138,11 @@ public:
 					}
 					else
 					{
-						const aligned_pointer_type endpoint = group_pointer->end();
+						const aligned_pointer_type endpoint = group_end;
 
 						while(true)
 						{
-							element_pointer = next_in_group(group_pointer, element_pointer);
+							set_element_location_from_skipfield(next_in_group(group_pointer, element_pointer));
 							--distance;
 
 							if (element_pointer == endpoint)
@@ -4094,7 +4157,7 @@ public:
 
 						if (group_pointer->next_group == nullptr) // either we've reached end() or gone beyond it, so bound to end of block
 						{
-							element_pointer = group_pointer->end();
+							element_pointer = endpoint;
 							return;
 						}
 					}
@@ -4103,7 +4166,7 @@ public:
 
 					if (distance == 0)
 					{
-						element_pointer = group_pointer->first_non_erased();
+						set_iterator_to_first_element_in_group();
 						return;
 					}
 				}
@@ -4112,38 +4175,26 @@ public:
 				// Intermediary groups - at the start of this code block and the subsequent block, the position of the iterator is assumed to be the first non-erased element in the current group:
 				while (static_cast<difference_type>(group_pointer->size) <= distance)
 				{
-					if (group_pointer->next_group == nullptr) // either we've reached end() or gone beyond it, so bound to end of block
+					if (group_pointer->next_group == nullptr) // ie. either we would reach end() or go beyond it, so bound to end()
 					{
-						element_pointer = group_pointer->end();
+						advance_from_group_beginning(group_pointer->size);
 						return;
 					}
-					else if ((distance -= group_pointer->size) == 0)
+
+					distance -= group_pointer->size;
+					group_pointer = group_pointer->next_group;
+
+					if (distance == 0)
 					{
-						group_pointer = group_pointer->next_group;
-						element_pointer = group_pointer->first_non_erased();
+						set_iterator_to_first_element_in_group();
 						return;
-					}
-					else
-					{
-						group_pointer = group_pointer->next_group;
 					}
 				}
 
 
 				// Final group (if not already reached):
-				if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
-				{
-					element_pointer = group_pointer->begin() + distance;
-				}
-				else	 // We already know size > distance due to the intermediary group checks above - safe to ignore endpoint check condition while incrementing here:
-				{
-					element_pointer = group_pointer->first_non_erased();
-
-					do
-					{
-						element_pointer = next_in_group(group_pointer, element_pointer);
-					} while(--distance != 0);
-				}
+				// We already know group size > distance due to the intermediary group checks above - so it's safe to ignore endpoint check condition while incrementing here.
+				advance_from_group_beginning(static_cast<skipfield_type>(distance));
 			}
 			else if (distance < 0)
 			{
@@ -4153,7 +4204,7 @@ public:
 				distance = -distance;
 
 				// Special case for initial element pointer and initial group (we don't know how far into the group the element pointer is)
-				if (element_pointer != group_pointer->end()) // not currently at the back of a block
+				if (element_pointer != logical_end_in_group()) // not currently at the back of a block
 				{
 					if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 					{
@@ -4178,7 +4229,7 @@ public:
 					{
 						for (const aligned_pointer_type begin = group_pointer->first_non_erased(); element_pointer != begin;)
 						{
-							element_pointer = previous_in_group(group_pointer, element_pointer);
+							set_element_location_from_skipfield(previous_in_group(group_pointer, element_pointer));
 
 							if (--distance == 0)
 							{
@@ -4188,7 +4239,7 @@ public:
 
 						if (group_pointer->previous_group == nullptr)
 						{
-							element_pointer = group_pointer->first_non_erased(); // This is first group, so bound to begin() (just in case final decrement took us before begin())
+							set_iterator_to_first_element_in_group(); // This is first group, so bound to begin() (just in case final decrement took us before begin())
 							return;
 						}
 					}
@@ -4202,7 +4253,7 @@ public:
 				{
 					if (group_pointer->previous_group == nullptr) // we've gone beyond begin(), so bound to it
 					{
-						element_pointer = group_pointer->first_non_erased();
+						set_iterator_to_first_element_in_group();
 						return;
 					}
 
@@ -4214,19 +4265,19 @@ public:
 				// Final group (if not already reached):
 				if (static_cast<difference_type>(group_pointer->size) == distance) // go to front of group
 				{
-					element_pointer = group_pointer->first_non_erased();
+					set_iterator_to_first_element_in_group();
 				}
 				else if (group_pointer->erasures_list_previous_group == nullptr) // if there are no erasures in group
 				{
-					element_pointer = group_pointer->end() - distance;
+					element_pointer = logical_end_in_group() - distance;
 				}
 				else // ie. no more groups to traverse but there are erased elements in this group
 				{
-					element_pointer = group_pointer->end();
+					element_pointer = logical_end_in_group();
 
 					do
 					{
-						element_pointer = previous_in_group(group_pointer, element_pointer);
+						set_element_location_from_skipfield(previous_in_group(group_pointer, element_pointer));
 					} while(--distance != 0);
 				}
 			}
@@ -4248,13 +4299,6 @@ public:
 			assert(!(group_pointer == nullptr) && !(last.group_pointer == nullptr));  // Check that they are both initialized
 
 			if (last.element_pointer == element_pointer) return 0;
-
-			const auto next_in_group = [](const group_pointer_type group, const aligned_pointer_type element) noexcept
-			{
-				const std::size_t next_index = static_cast<std::size_t>((element - group->begin()) + 1u);
-				const skipfield_type skip = (next_index != group->capacity && group->erased_elements.test(next_index)) ? *skipfield_at(element + 1) : 0;
-				return element + static_cast<size_type>(skip) + 1u;
-			};
 
 			difference_type distance = 0;
 			hive_iterator iterator1 = *this, iterator2 = last;
@@ -4341,39 +4385,20 @@ public:
 
 		friend class hive;
 
+		template <plf::hive_iterator_concept it_type, typename distance_type>
+		friend void std::advance(it_type &it, const distance_type distance);
 
-		template <class distance_type>
-		friend void advance(hive_reverse_iterator &it, const distance_type distance)
-		{
-			it.advance(static_cast<difference_type>(distance));
-		}
+		template <plf::hive_iterator_concept it_type>
+		friend it_type std::next(it_type it, const typename std::iterator_traits<it_type>::difference_type distance);
 
+		template <plf::hive_iterator_concept it_type>
+		friend it_type std::prev(it_type it, const typename std::iterator_traits<it_type>::difference_type distance);
 
+		template <plf::hive_iterator_concept it_type>
+		friend typename std::iterator_traits<it_type>::difference_type std::distance(const std::move_iterator<it_type> first, const std::move_iterator<it_type> last);
 
-		friend hive_reverse_iterator next(const hive_reverse_iterator &it, const difference_type distance)
-		{
-			hive_reverse_iterator return_iterator(it);
-			return_iterator.advance(static_cast<difference_type>(distance));
-			return return_iterator;
-		}
-
-
-
-		template <class distance_type>
-		friend hive_reverse_iterator prev(const hive_reverse_iterator &it, const difference_type distance)
-		{
-			hive_reverse_iterator return_iterator(it);
-			return_iterator.advance(static_cast<difference_type>(distance));
-			return return_iterator;
-		}
-
-
-
-		friend typename hive_reverse_iterator::difference_type distance(const hive_reverse_iterator &first, const hive_reverse_iterator &last)
-		{
-			return last.distance(first);
-		}
-
+		template <plf::hive_iterator_concept it_type>
+		friend typename std::iterator_traits<it_type>::difference_type std::distance(const it_type first, const it_type last);
 
 
 		hive_reverse_iterator (const hive_reverse_iterator &source) noexcept = default;
@@ -4568,6 +4593,8 @@ public:
 
 
 
+	private:
+
 		void advance(difference_type distance)
 		{
  			current.advance(-distance);
@@ -4681,9 +4708,5 @@ namespace std
 
 
 #undef PLF_EXCEPTIONS_SUPPORT
-
-#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__)
-	#pragma warning ( pop )
-#endif
 
 #endif // PLF_HIVE_H
