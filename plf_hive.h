@@ -23,12 +23,12 @@
 #define __cpp_lib_hive
 
 
-#include <algorithm> // std::fill_n, std::sort, std::swap
+#include <algorithm> // std::sort, std::swap
 #include <cstdint> // uint_least16_t etc
 #include <cassert>	// assert
 #include <cstring>	// memset, memcpy, size_t
 #include <limits>  // std::numeric_limits
-#include <memory> // std::allocator, std::to_address
+#include <memory> // std::allocator_traits, std::to_address
 #include <iterator> // std::bidirectional_iterator_tag, iterator_traits, make_move_iterator, std::distance for range insert
 #include <stdexcept> // std::length_error, std::out_of_range
 #include <functional> // std::less
@@ -50,11 +50,6 @@
 	#include <exception> // std::terminate
 #endif
 
-#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__)
-	// Suppress incorrect (unfixed MSVC bug at warning level 4) warnings re: constant expressions in constexpr-if statements
-	#pragma warning ( push )
-	#pragma warning ( disable : 4127 )
-#endif
 
 
 
@@ -95,10 +90,11 @@ namespace plf
 		struct allocator_has_construct< allocator_type, std::void_t<decltype(std::declval<allocator_type&>().construct(std::declval<int*>(), std::declval<int>()))> > : std::true_type {};
 
 
-		template <class allocator_type, class iterator_type>
-		void uninitialized_copy(iterator_type begin, const iterator_type end, iterator_type destination, [[maybe_unused]] allocator_type &alloc)
+
+		template <class allocator_type, class iterator_type, class iterator_type2>
+		void uninitialized_copy(iterator_type begin, const iterator_type end, iterator_type2 destination, [[maybe_unused]] allocator_type &alloc)
 		{
-			if constexpr (!allocator_has_construct<allocator_type>::value) // If allocator has no construct method, we can take advantage of optimized routines for POD types
+			if constexpr (!allocator_has_construct<allocator_type>::value) // If allocator has no construct method, we can take advantage of optimized routines for POD types in library implementation:
 			{
 				std::uninitialized_copy(begin, end, destination);
 			}
@@ -106,23 +102,23 @@ namespace plf
 			{
 				for (; begin != end; ++begin, ++destination)
 				{
-					std::allocator_traits<allocator_type>::construct(alloc, &*destination, *begin);
+					std::allocator_traits<allocator_type>::construct(alloc, std::to_address(destination), *begin);
 				}
 			}
 		}
 
 
 
-		template <class allocator_type, class iterator_type>
-		void uninitialized_move(iterator_type begin, const iterator_type end, iterator_type destination, allocator_type &alloc)
+		template <class allocator_type, class iterator_type, class iterator_type2>
+		void uninitialized_move(iterator_type begin, const iterator_type end, iterator_type2 destination, allocator_type &alloc)
 		{
-			plf::uninitialized_copy(std::make_move_iterator(begin), std::make_move_iterator(end), destination, alloc);
+			uninitialized_copy(std::make_move_iterator(begin), std::make_move_iterator(end), destination, alloc);
 		}
 
 
 
 		template <class allocator_type, class iterator_type, class element_type>
-		void uninitialized_fill_n(iterator_type begin, std::size_t size, const element_type &element, [[maybe_unused]]	allocator_type &alloc)
+		void uninitialized_fill_n(iterator_type begin, std::size_t size, const element_type &element, [[maybe_unused]] allocator_type &alloc)
 		{
 			if constexpr (!allocator_has_construct<allocator_type>::value)
 			{
@@ -132,7 +128,7 @@ namespace plf
 			{
 				for (; size != 0; ++begin, --size)
 				{
-					std::allocator_traits<allocator_type>::construct(alloc, &*begin, element);
+					std::allocator_traits<allocator_type>::construct(alloc, std::to_address(begin), element);
 				}
 			}
 		}
@@ -1304,13 +1300,27 @@ private:
 
 	void fill(const element_type &element, const skipfield_type size)
 	{
-		const aligned_pointer_type fill_end = end_iterator.element_pointer + size;
-
-		#ifdef PLF_EXCEPTIONS_SUPPORT
-			if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
+		if constexpr (std::is_nothrow_copy_constructible<element_type>::value)
+		{
+			if constexpr (sizeof(aligned_element_struct) != sizeof(element_type))
 			{
-				do
-				{
+				alignas (alignof(aligned_element_struct)) element_type aligned_copy = element; // to avoid potentially violating memory boundaries in line below, create an initial object copy of same (but aligned) type
+				plf::uninitialized_fill_n(end_iterator.element_pointer, size, *to_aligned_pointer(&aligned_copy), static_cast<allocator_type &>(*this));
+			}
+			else
+			{
+				plf::uninitialized_fill_n(pointer_cast<pointer>(end_iterator.element_pointer), size, element, static_cast<allocator_type &>(*this));
+			}
+
+			end_iterator.element_pointer += size;
+		}
+		else
+		{
+			const aligned_pointer_type fill_end = end_iterator.element_pointer + size;
+
+			do
+			{
+				#ifdef PLF_EXCEPTIONS_SUPPORT
 					try
 					{
 						construct_element(end_iterator.element_pointer, element);
@@ -1320,14 +1330,9 @@ private:
 						recover_from_partial_fill();
 						throw;
 					}
-				} while (++end_iterator.element_pointer != fill_end);
-			}
-			else
-		#endif
-		{
-			do
-			{
-				construct_element(end_iterator.element_pointer, element);
+				#else
+					construct_element(end_iterator.element_pointer, element);
+				#endif
 			} while (++end_iterator.element_pointer != fill_end);
 		}
 
@@ -1337,7 +1342,7 @@ private:
 
 
 	// For catch blocks in range_fill_skipblock and fill_skipblock - update existing skipblock and free-list indexes to reflect partially-reused skipblock:
-	void recover_from_partial_skipblock_fill(const aligned_pointer_type location, const aligned_pointer_type current_location, const skipfield_pointer_type skipfield_pointer, const skipfield_type prev_free_list_node)
+	void recover_from_partial_skipblock_fill([[maybe_unused]] const aligned_pointer_type location, [[maybe_unused]] const aligned_pointer_type current_location, [[maybe_unused]] const skipfield_pointer_type skipfield_pointer, [[maybe_unused]] const skipfield_type prev_free_list_node)
 	{
 		#ifdef PLF_EXCEPTIONS_SUPPORT
 			if constexpr ((!std::is_copy_constructible<element_type>::value && !std::is_nothrow_move_constructible<element_type>::value) || !std::is_nothrow_copy_constructible<element_type>::value) // to avoid unnecessary codegen
@@ -1370,16 +1375,28 @@ private:
 
 	void fill_skipblock(const element_type &element, const aligned_pointer_type location, const skipfield_pointer_type skipfield_pointer, const skipfield_type size)
 	{
-		const aligned_pointer_type fill_end = location + size;
-		aligned_pointer_type current_location = location;
-
-		#ifdef PLF_EXCEPTIONS_SUPPORT
-			if constexpr (!std::is_nothrow_copy_constructible<element_type>::value)
+		if constexpr (std::is_nothrow_copy_constructible<element_type>::value)
+		{
+			if constexpr (sizeof(aligned_element_struct) != sizeof(element_type))
 			{
+				alignas (alignof(aligned_element_struct)) element_type aligned_copy = element;
+				plf::uninitialized_fill_n(location, size, *to_aligned_pointer(&aligned_copy), static_cast<allocator_type &>(*this));
+			}
+			else
+			{
+				plf::uninitialized_fill_n(pointer_cast<pointer>(location), size, element, static_cast<allocator_type &>(*this));
+			}
+		}
+		else
+		{
+			const aligned_pointer_type fill_end = location + size;
+			#ifdef PLF_EXCEPTIONS_SUPPORT
 				const skipfield_type prev_free_list_node = *pointer_cast<skipfield_pointer_type>(location); // in case of exception, grabbing indexes before free_list node is reused
+			#endif
 
-				do
-				{
+			for (aligned_pointer_type current_location = location; current_location != fill_end; ++current_location)
+			{
+				#ifdef PLF_EXCEPTIONS_SUPPORT
 					try
 					{
 						construct_element(current_location, element);
@@ -1389,15 +1406,10 @@ private:
 						recover_from_partial_skipblock_fill(location, current_location, skipfield_pointer, prev_free_list_node);
 						throw;
 					}
-				} while (++current_location != fill_end);
+				#else
+					construct_element(current_location, element);
+				#endif
 			}
-			else
-		#endif
-		{
-			do
-			{
-				construct_element(current_location, element);
-			} while (++current_location != fill_end);
 		}
 
 		std::memset(std::to_address(skipfield_pointer), 0, size * sizeof(skipfield_type)); // reset skipfield nodes within skipblock to 0
@@ -3511,26 +3523,19 @@ public:
 			}
 
 			const pointer end = sort_array + total_size;
-			pointer current_dest = sort_array;
 
-			if constexpr (!std::is_trivially_copyable<element_type>::value && std::is_move_assignable<element_type>::value)
+			if constexpr (!std::is_trivially_copy_constructible<element_type>::value && std::is_nothrow_move_constructible<element_type>::value)
 			{
-				for (iterator current = begin_iterator; current != end_iterator; ++current, ++current_dest)
-				{
-					std::allocator_traits<allocator_type>::construct(*this, current_dest, std::move(*current));
-				}
+				plf::uninitialized_move(begin_iterator, end_iterator, sort_array, static_cast<allocator_type &>(*this));
 			}
 			else
 			{
-				for (iterator current = begin_iterator; current != end_iterator; ++current, ++current_dest)
-				{
-					std::allocator_traits<allocator_type>::construct(*this, current_dest, *current);
-				}
+				plf::uninitialized_copy(begin_iterator, end_iterator, sort_array, static_cast<allocator_type &>(*this));
 			}
 
 			std::sort(sort_array, end, compare);
 
-			if constexpr (!std::is_trivially_copyable<element_type>::value && std::is_move_assignable<element_type>::value)
+			if constexpr (!std::is_trivially_copy_assignable<element_type>::value && std::is_nothrow_move_assignable<element_type>::value)
 			{
 				std::copy(std::make_move_iterator(sort_array), std::make_move_iterator(end), begin_iterator);
 			}
@@ -4650,9 +4655,5 @@ namespace std
 
 
 #undef PLF_EXCEPTIONS_SUPPORT
-
-#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__)
-	#pragma warning ( pop )
-#endif
 
 #endif // PLF_HIVE_H

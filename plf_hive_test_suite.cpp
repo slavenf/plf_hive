@@ -160,6 +160,9 @@ int main()
 		failpass("Trivially-copyable reverse_const_iterators for trivial types", std::is_trivially_copyable<hive_type::const_reverse_iterator>::value);
 	}
 
+	printf("\nExceptions will be thrown (and caught) by this suite in order to test sub-function exception recovery. Tests loop many times in order to catch edge cases (via random number generation). Press enter to continue.\n");
+	getchar();
+
 
 	for (unsigned int looper = 0; looper != 100; ++looper)
 	{
