@@ -3807,38 +3807,6 @@ public:
 		{
 			assert(group_pointer != nullptr); // covers uninitialised hive_iterator
 
-			#if 0 // OLD
-
-			#if defined(_MSC_VER) && !defined(__clang__) && !defined(__GNUC__) // This version creates faster release code under MSVC in some scenarios, but not other compilers
-				element_pointer += *(++skipfield_pointer) + 1;
-				skipfield_pointer += *skipfield_pointer;
-
-				if (element_pointer == to_aligned_pointer(group_pointer->skipfield) && group_pointer->next_group != nullptr) // ie. beyond end of current memory block. Second condition allows iterator to reach end(), which may be 1 past end of block, if block has been fully used and another block is not allocated
-				{
-					group_pointer = group_pointer->next_group;
-					element_pointer = to_aligned_pointer(group_pointer->elements);
-					skipfield_pointer = group_pointer->skipfield;
-					element_pointer += *skipfield_pointer;
-					skipfield_pointer += *skipfield_pointer;
-				}
-			#else
-				skipfield_type skip = *(++skipfield_pointer);
-
-				if ((element_pointer += static_cast<size_type>(skip) + 1u) == to_aligned_pointer(group_pointer->skipfield) && group_pointer->next_group != nullptr)
-				{
-					group_pointer = group_pointer->next_group;
-					const aligned_pointer_type elements = to_aligned_pointer(group_pointer->elements);
-					const skipfield_pointer_type skipfield = group_pointer->skipfield;
-					skip = *skipfield;
-					element_pointer = elements + skip;
-					skipfield_pointer = skipfield;
-				}
-
-				skipfield_pointer += skip;
-			#endif
-
-			#else // NEW
-
 			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
 			const aligned_pointer_type group_end = group_begin + group_pointer->capacity;
 
@@ -3867,8 +3835,6 @@ public:
 				}
 			}
 
-			#endif // OLD/NEW
-
 			return *this;
 		}
 
@@ -3886,22 +3852,6 @@ public:
 		hive_iterator & operator -- ()
 		{
 			assert(group_pointer != nullptr);
-
-			#if 0 // OLD
-
-			if (--skipfield_pointer >= group_pointer->skipfield) // ie. not already at beginning of group prior to decrementation
-			{
-				element_pointer -= static_cast<size_type>(*skipfield_pointer) + 1u;
-				if ((skipfield_pointer -= *skipfield_pointer) >= group_pointer->skipfield) return *this; // ie. skipfield jump value does not takes us beyond beginning of group
-			}
-
-			group_pointer = group_pointer->previous_group;
-			const skipfield_pointer_type skipfield = group_pointer->skipfield + group_pointer->capacity - 1;
-			const skipfield_type skip = *skipfield;
-			element_pointer = (to_aligned_pointer(group_pointer->skipfield) - 1) - skip;
-			skipfield_pointer = skipfield - skip;
-
-			#else // NEW
 
 			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
 
@@ -3938,8 +3888,6 @@ public:
 			{
 				element_pointer -= *pointer_cast<skipfield_pointer_type>(element_pointer);
 			}
-
-			#endif // OLD/NEW
 
 			return *this;
 		}
