@@ -3807,10 +3807,7 @@ public:
 		{
 			assert(group_pointer != nullptr); // covers uninitialised hive_iterator
 
-			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
-			const aligned_pointer_type group_end = group_begin + group_pointer->capacity;
-
-			const std::size_t pos = element_pointer - group_begin;
+			const std::size_t pos = element_pointer - group_pointer->begin();
 
 			const std::size_t next_pos = pos + 1u;
 
@@ -3823,7 +3820,7 @@ public:
 
 			element_pointer += static_cast<size_type>(skip) + 1u;
 
-			if (element_pointer == group_end && group_pointer->next_group != nullptr)
+			if (element_pointer == group_pointer->end() && group_pointer->next_group != nullptr)
 			{
 				group_pointer = group_pointer->next_group;
 
@@ -3853,9 +3850,7 @@ public:
 		{
 			assert(group_pointer != nullptr);
 
-			const aligned_pointer_type group_begin = to_aligned_pointer(group_pointer->elements);
-
-			const std::size_t pos = element_pointer - group_begin;
+			const std::size_t pos = element_pointer - group_pointer->begin();
 
 			if (pos != 0)
 			{
